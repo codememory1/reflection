@@ -73,6 +73,17 @@ final class PropertyReflector implements ReflectorInterface
         return $this;
     }
 
+    public function setStaticValue(object $object, mixed $value): self
+    {
+        $propertyName = $this->getName();
+
+        (Closure::bind(function(object $object) use ($propertyName, $value): void {
+            $object::{$propertyName} = $value;
+        }, null, $object))($object);
+
+        return $this;
+    }
+
     public function __serialize(): array
     {
         return [
