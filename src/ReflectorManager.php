@@ -17,6 +17,7 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionProperty;
+use ReflectionUnionType;
 use RuntimeException;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -139,15 +140,34 @@ final class ReflectorManager
         return $properties;
     }
 
-    private function buildNamedType(ReflectionNamedType $reflectionNamedType): TypeBuilder
+    /**
+     * @return array<int, TypeBuilder>|TypeBuilder
+     */
+    private function buildNamedType(ReflectionNamedType|ReflectionUnionType $reflectionType): TypeBuilder|array
     {
-        $builder = new TypeBuilder();
+        if ($reflectionType instanceof ReflectionNamedType) {
+            $builder = new TypeBuilder();
 
-        $builder->setName($reflectionNamedType->getName());
-        $builder->setAllowNullable($reflectionNamedType->allowsNull());
-        $builder->setIsBuiltin($reflectionNamedType->isBuiltin());
+            $builder->setName($reflectionType->getName());
+            $builder->setAllowNullable($reflectionType->allowsNull());
+            $builder->setIsBuiltin($reflectionType->isBuiltin());
 
-        return $builder;
+            return $builder;
+        }
+
+        $builders = [];
+
+        foreach ($reflectionType->getTypes() as $type) {
+            $builder = new TypeBuilder();
+
+            $builder->setName($type->getName());
+            $builder->setAllowNullable($type->allowsNull());
+            $builder->setIsBuiltin($type->isBuiltin());
+
+            $builders[] = $builder;
+        }
+
+        return $builders;
     }
 
     /**
