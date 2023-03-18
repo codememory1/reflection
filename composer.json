@@ -1,0 +1,28 @@
+{
+    "name": "codememory/reflection",
+    "description": "The library is similar to the built-in API class Reflection, but the only difference is that this library caches the entire result and does not work with the built-in Reflection in the future, which improves performance",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Codememory\\Reflection\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "codememory",
+            "email": "kostynd1@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "symfony/cache": "6.1.11"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "require-dev": {
+        "symfony/var-dumper": "6.1"
+    }
+}
