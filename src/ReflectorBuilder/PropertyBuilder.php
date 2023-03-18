@@ -4,12 +4,13 @@ namespace Codememory\Reflection\ReflectorBuilder;
 
 use Codememory\Reflection\Enum\KeyEnum;
 use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
+use Codememory\Reflection\ReflectorBuilder\Traits\TypeTrait;
 
 final class PropertyBuilder implements ReflectorBuilderInterface
 {
+    use TypeTrait;
     private ?string $name = null;
     private ?int $modifier = null;
-    private ?TypeBuilder $type = null;
     private mixed $defaultValue = null;
     private array $attributes = [];
 
@@ -33,18 +34,6 @@ final class PropertyBuilder implements ReflectorBuilderInterface
     public function setModifier(int $modifier): self
     {
         $this->modifier = $modifier;
-
-        return $this;
-    }
-
-    public function getType(): ?TypeBuilder
-    {
-        return $this->type;
-    }
-
-    public function setType(TypeBuilder $type): self
-    {
-        $this->type = $type;
 
         return $this;
     }
@@ -93,13 +82,9 @@ final class PropertyBuilder implements ReflectorBuilderInterface
             $meta = $updateCacheCallback();
         }
 
-        $typeBuilder = new TypeBuilder();
-
-        $typeBuilder->fromArray($meta[KeyEnum::TYPE->value], $updateCacheCallback);
-
         $this->setName($meta[KeyEnum::NAME->value]);
         $this->setModifier($meta[KeyEnum::MODIFIER->value]);
-        $this->setType($typeBuilder);
+        $this->setType($this->typeToBuilder($meta, $updateCacheCallback));
         $this->setDefaultValue($meta[KeyEnum::DEFAULT_VALUE->value]);
         $this->setAttributes(array_map(
             static fn (array $data) => (new AttributeBuilder())->fromArray($data, $updateCacheCallback),
@@ -114,7 +99,7 @@ final class PropertyBuilder implements ReflectorBuilderInterface
         return [
             KeyEnum::NAME->value => $this->getName(),
             KeyEnum::MODIFIER->value => $this->getModifier(),
-            KeyEnum::TYPE->value => $this->getType()->toArray(),
+            KeyEnum::TYPE->value => $this->typeToArray(),
             KeyEnum::DEFAULT_VALUE->value => $this->getDefaultValue(),
             KeyEnum::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes())
         ];

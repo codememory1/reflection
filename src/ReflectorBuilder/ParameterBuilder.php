@@ -4,11 +4,12 @@ namespace Codememory\Reflection\ReflectorBuilder;
 
 use Codememory\Reflection\Enum\KeyEnum;
 use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
+use Codememory\Reflection\ReflectorBuilder\Traits\TypeTrait;
 
 final class ParameterBuilder implements ReflectorBuilderInterface
 {
+    use TypeTrait;
     private ?string $name = null;
-    private ?TypeBuilder $type = null;
     private mixed $defaultValue = null;
     private array $attributes = [];
 
@@ -20,18 +21,6 @@ final class ParameterBuilder implements ReflectorBuilderInterface
     public function setName(string $name): self
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getType(): ?TypeBuilder
-    {
-        return $this->type;
-    }
-
-    public function setType(TypeBuilder $type): self
-    {
-        $this->type = $type;
 
         return $this;
     }
@@ -79,12 +68,8 @@ final class ParameterBuilder implements ReflectorBuilderInterface
             $meta = $updateCacheCallback();
         }
 
-        $typeBuilder = new TypeBuilder();
-
-        $typeBuilder->fromArray($meta[KeyEnum::TYPE->value], $updateCacheCallback);
-
         $this->setName($meta[KeyEnum::NAME->value]);
-        $this->setType($typeBuilder);
+        $this->setType($this->typeToBuilder($meta, $updateCacheCallback));
         $this->setDefaultValue($meta[KeyEnum::DEFAULT_VALUE->value]);
         $this->setAttributes(array_map(
             static fn (array $data) => (new AttributeBuilder())->fromArray($data, $updateCacheCallback),
@@ -98,7 +83,7 @@ final class ParameterBuilder implements ReflectorBuilderInterface
     {
         return [
             KeyEnum::NAME->value => $this->getName(),
-            KeyEnum::TYPE->value => $this->getType()->toArray(),
+            KeyEnum::TYPE->value => $this->typeToArray(),
             KeyEnum::DEFAULT_VALUE->value => $this->getDefaultValue(),
             KeyEnum::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes()),
         ];
