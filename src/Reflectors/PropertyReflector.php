@@ -6,11 +6,13 @@ use Closure;
 use Codememory\Reflection\Interfaces\ReflectorInterface;
 use Codememory\Reflection\ReflectorBuilder\PropertyBuilder;
 use Codememory\Reflection\Reflectors\Traits\AttributeTrait;
+use Codememory\Reflection\Reflectors\Traits\TypeTrait;
 use ReflectionProperty;
 
 final class PropertyReflector implements ReflectorInterface
 {
     use AttributeTrait;
+    use TypeTrait;
 
     public function __construct(
         private readonly PropertyBuilder $builder
@@ -25,11 +27,6 @@ final class PropertyReflector implements ReflectorInterface
     public function getModifier(): int
     {
         return $this->builder->getModifier();
-    }
-
-    public function getType(): TypeReflector
-    {
-        return new TypeReflector($this->builder->getType());
     }
 
     public function isPublic(): bool
