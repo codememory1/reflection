@@ -42,17 +42,6 @@ final class AttributeReflector implements ReflectorInterface
         return $this->builder->getInstance();
     }
 
-    public function __serialize(): array
-    {
-        return [
-            'name' => $this->getName(),
-            'arguments' => $this->getArguments(),
-            'target' => $this->getTarget(),
-            'is_repeated' => $this->isRepeated(),
-            'instance' => $this->getInstance()
-        ];
-    }
-
     public function __toString(): string
     {
         return $this->getName();

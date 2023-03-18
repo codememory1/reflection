@@ -62,15 +62,6 @@ final class TypeReflector implements ReflectorInterface
         return $this->builder->isBuiltin();
     }
 
-    public function __serialize(): array
-    {
-        return [
-            'name' => $this->builder->getName(),
-            'allow_nullable' => $this->builder->allowNullable(),
-            'is_builtin' => $this->builder->isBuiltin()
-        ];
-    }
-
     public function __toString(): string
     {
         return $this->getName();

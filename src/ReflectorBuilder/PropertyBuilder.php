@@ -2,19 +2,15 @@
 
 namespace Codememory\Reflection\ReflectorBuilder;
 
-use Codememory\Reflection\Reflectors\AttributeReflector;
-use Codememory\Reflection\Reflectors\TypeReflector;
+use Codememory\Reflection\Enum\KeyEnum;
+use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
 
-final class PropertyBuilder
+final class PropertyBuilder implements ReflectorBuilderInterface
 {
     private ?string $name = null;
     private ?int $modifier = null;
-    private ?TypeReflector $type = null;
+    private ?TypeBuilder $type = null;
     private mixed $defaultValue = null;
-
-    /**
-     * @var array<int, AttributeReflector>
-     */
     private array $attributes = [];
 
     public function getName(): ?string
@@ -41,12 +37,12 @@ final class PropertyBuilder
         return $this;
     }
 
-    public function getType(): ?TypeReflector
+    public function getType(): ?TypeBuilder
     {
         return $this->type;
     }
 
-    public function setType(TypeReflector $type): self
+    public function setType(TypeBuilder $type): self
     {
         $this->type = $type;
 
@@ -58,27 +54,69 @@ final class PropertyBuilder
         return $this->defaultValue;
     }
 
-    public function setDefaultValue(bool $value): self
+    public function setDefaultValue(mixed $value): self
     {
         $this->defaultValue = $value;
 
         return $this;
     }
 
+    /**
+     * @return array<int, AttributeBuilder>
+     */
     public function getAttributes(): array
     {
         return $this->attributes;
     }
 
-    public function setAttributes(): array
+    /**
+     * @param array<int, AttributeBuilder> $attributes
+     */
+    public function setAttributes(array $attributes): self
     {
-        return $this->attributes;
-    }
-
-    public function addAttribute(AttributeReflector $attribute): self
-    {
-        $this->attributes[] = $attribute;
+        $this->attributes = $attributes;
 
         return $this;
+    }
+
+    public function fromArray(array $meta, callable $updateCacheCallback): ReflectorBuilderInterface
+    {
+        $expectKeys = [
+            KeyEnum::NAME->value,
+            KeyEnum::MODIFIER->value,
+            KeyEnum::TYPE->value,
+            KeyEnum::DEFAULT_VALUE->value,
+            KeyEnum::ATTRS->value
+        ];
+
+        if (array_diff($expectKeys, array_keys($meta))) {
+            $meta = $updateCacheCallback();
+        }
+
+        $typeBuilder = new TypeBuilder();
+
+        $typeBuilder->fromArray($meta[KeyEnum::TYPE->value], $updateCacheCallback);
+
+        $this->setName($meta[KeyEnum::NAME->value]);
+        $this->setModifier($meta[KeyEnum::MODIFIER->value]);
+        $this->setType($typeBuilder);
+        $this->setDefaultValue($meta[KeyEnum::DEFAULT_VALUE->value]);
+        $this->setAttributes(array_map(
+            static fn (array $data) => (new AttributeBuilder())->fromArray($data, $updateCacheCallback),
+            $meta[KeyEnum::ATTRS->value]
+        ));
+
+        return $this;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            KeyEnum::NAME->value => $this->getName(),
+            KeyEnum::MODIFIER->value => $this->getModifier(),
+            KeyEnum::TYPE->value => $this->getType()->toArray(),
+            KeyEnum::DEFAULT_VALUE->value => $this->getDefaultValue(),
+            KeyEnum::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes())
+        ];
     }
 }

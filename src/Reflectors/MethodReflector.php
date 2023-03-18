@@ -5,6 +5,7 @@ namespace Codememory\Reflection\Reflectors;
 use function call_user_func_array;
 use Codememory\Reflection\Interfaces\ReflectorInterface;
 use Codememory\Reflection\ReflectorBuilder\MethodBuilder;
+use Codememory\Reflection\ReflectorBuilder\ParameterBuilder;
 use Codememory\Reflection\Reflectors\Traits\AttributeTrait;
 use ReflectionMethod;
 
@@ -62,6 +63,11 @@ final class MethodReflector implements ReflectorInterface
         return $this->builder->isConstruct();
     }
 
+    public function getParameters(): array
+    {
+        return array_map(static fn(ParameterBuilder $builder) => new ParameterReflector($builder), $this->builder->getParameters());
+    }
+
     public function invoke(object $object, mixed ...$args): self
     {
         $methodName = $this->getName();
@@ -71,16 +77,6 @@ final class MethodReflector implements ReflectorInterface
         })->bindTo($object, $object)->__invoke($object, ...$args);
 
         return $this;
-    }
-
-    public function __serialize(): array
-    {
-        return [
-            'name' => $this->getName(),
-            'modifier' => $this->getModifier(),
-            'is_construct' => $this->isConstruct(),
-            'attributes' => $this->getAttributes()
-        ];
     }
 
     public function __toString(): string

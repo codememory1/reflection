@@ -2,7 +2,10 @@
 
 namespace Codememory\Reflection\ReflectorBuilder;
 
-final class AttributeBuilder
+use Codememory\Reflection\Enum\KeyEnum;
+use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
+
+final class AttributeBuilder implements ReflectorBuilderInterface
 {
     private ?string $name = null;
     private array $arguments = [];
@@ -68,5 +71,39 @@ final class AttributeBuilder
         $this->instance = $instance;
 
         return $this;
+    }
+
+    public function fromArray(array $meta, callable $updateCacheCallback): ReflectorBuilderInterface
+    {
+        $expectKeys = [
+            KeyEnum::NAME->value,
+            KeyEnum::ARGUMENTS->value,
+            KeyEnum::TARGET->value,
+            KeyEnum::IS_REPEATED_KEY->value,
+            KeyEnum::INSTANCE->value,
+        ];
+
+        if (array_diff($expectKeys, array_keys($meta))) {
+            $meta = $updateCacheCallback();
+        }
+
+        $this->setName($meta[KeyEnum::NAME->value]);
+        $this->setArguments($meta[KeyEnum::ARGUMENTS->value]);
+        $this->setTarget($meta[KeyEnum::TARGET->value]);
+        $this->setIsRepeated($meta[KeyEnum::IS_REPEATED_KEY->value]);
+        $this->setInstance($meta[KeyEnum::INSTANCE->value]);
+
+        return $this;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            KeyEnum::NAME->value => $this->getName(),
+            KeyEnum::ARGUMENTS->value => $this->getArguments(),
+            KeyEnum::TARGET->value => $this->getTarget(),
+            KeyEnum::IS_REPEATED_KEY->value => $this->isRepeated,
+            KeyEnum::INSTANCE->value => $this->getInstance()
+        ];
     }
 }

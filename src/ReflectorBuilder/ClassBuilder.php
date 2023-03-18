@@ -2,11 +2,10 @@
 
 namespace Codememory\Reflection\ReflectorBuilder;
 
-use Codememory\Reflection\Reflectors\AttributeReflector;
-use Codememory\Reflection\Reflectors\MethodReflector;
-use Codememory\Reflection\Reflectors\PropertyReflector;
+use Codememory\Reflection\Enum\KeyEnum;
+use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
 
-final class ClassBuilder
+final class ClassBuilder implements ReflectorBuilderInterface
 {
     private ?string $name = null;
     private ?string $shortName = null;
@@ -17,20 +16,8 @@ final class ClassBuilder
     private bool $isTrait = false;
     private bool $isInterface = false;
     private bool $isAnonymous = false;
-
-    /**
-     * @var array<int, MethodReflector>
-     */
     private array $methods = [];
-
-    /**
-     * @var array<int, PropertyReflector>
-     */
     private array $properties = [];
-
-    /**
-     * @var array<int, AttributeReflector>
-     */
     private array $attributes = [];
 
     public function getName(): ?string
@@ -144,11 +131,17 @@ final class ClassBuilder
         return $this;
     }
 
+    /**
+     * @return array<int, MethodBuilder>
+     */
     public function getMethods(): array
     {
         return $this->methods;
     }
 
+    /**
+     * @param array<int, MethodBuilder> $methods
+     */
     public function setMethods(array $methods): self
     {
         $this->methods = $methods;
@@ -156,11 +149,17 @@ final class ClassBuilder
         return $this;
     }
 
+    /**
+     * @return array<int, PropertyBuilder>
+     */
     public function getProperties(): array
     {
         return $this->properties;
     }
 
+    /**
+     * @param array<int, PropertyBuilder> $properties
+     */
     public function setProperties(array $properties): self
     {
         $this->properties = $properties;
@@ -168,15 +167,85 @@ final class ClassBuilder
         return $this;
     }
 
+    /**
+     * @return array<int, AttributeBuilder>
+     */
     public function getAttributes(): array
     {
         return $this->attributes;
     }
 
+    /**
+     * @param array<int, AttributeBuilder> $attributes
+     */
     public function setAttributes(array $attributes): self
     {
         $this->attributes = $attributes;
 
         return $this;
+    }
+
+    public function fromArray(array $meta, callable $updateCacheCallback): ReflectorBuilderInterface
+    {
+        $expectKeys = [
+            KeyEnum::NAME->value,
+            KeyEnum::SHORT_NAME->value,
+            KeyEnum::NAMESPACE->value,
+            KeyEnum::IS_ABSTRACT->value,
+            KeyEnum::IS_FINAL->value,
+            KeyEnum::IS_ITERABLE->value,
+            KeyEnum::IS_TRAIT->value,
+            KeyEnum::IS_INTERFACE->value,
+            KeyEnum::IS_ANONYMOUS->value,
+            KeyEnum::METHODS->value,
+            KeyEnum::PROPS->value,
+            KeyEnum::ATTRS->value,
+        ];
+
+        if (array_diff($expectKeys, array_keys($meta))) {
+            $meta = $updateCacheCallback();
+        }
+
+        $this->setName($meta[KeyEnum::NAME->value]);
+        $this->setShortName($meta[KeyEnum::SHORT_NAME->value]);
+        $this->setNamespace($meta[KeyEnum::NAMESPACE->value]);
+        $this->setIsFinal($meta[KeyEnum::IS_FINAL->value]);
+        $this->setIsAbstract($meta[KeyEnum::IS_ABSTRACT->value]);
+        $this->setIsIterable($meta[KeyEnum::IS_ITERABLE->value]);
+        $this->setIsTrait($meta[KeyEnum::IS_TRAIT->value]);
+        $this->setIsInterface($meta[KeyEnum::IS_INTERFACE->value]);
+        $this->setIsAnonymous($meta[KeyEnum::IS_ANONYMOUS->value]);
+        $this->setMethods(array_map(
+            static fn (array $data) => (new MethodBuilder())->fromArray($data, $updateCacheCallback),
+            $meta[KeyEnum::METHODS->value]
+        ));
+        $this->setProperties(array_map(
+            static fn (array $data) => (new PropertyBuilder())->fromArray($data, $updateCacheCallback),
+            $meta[KeyEnum::PROPS->value]
+        ));
+        $this->setAttributes(array_map(
+            static fn (array $data) => (new AttributeBuilder())->fromArray($data, $updateCacheCallback),
+            $meta[KeyEnum::ATTRS->value]
+        ));
+
+        return $this;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            KeyEnum::NAME->value => $this->getName(),
+            KeyEnum::SHORT_NAME->value => $this->getShortName(),
+            KeyEnum::NAMESPACE->value => $this->getNamespace(),
+            KeyEnum::IS_ABSTRACT->value => $this->isAbstract(),
+            KeyEnum::IS_FINAL->value => $this->isFinal(),
+            KeyEnum::IS_ITERABLE->value => $this->isIterable(),
+            KeyEnum::IS_TRAIT->value => $this->isTrait(),
+            KeyEnum::IS_INTERFACE->value => $this->isInterface(),
+            KeyEnum::IS_ANONYMOUS->value => $this->isAnonymous(),
+            KeyEnum::METHODS->value => array_map(static fn (MethodBuilder $builder) => $builder->toArray(), $this->getMethods()),
+            KeyEnum::PROPS->value => array_map(static fn (PropertyBuilder $builder) => $builder->toArray(), $this->getProperties()),
+            KeyEnum::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes())
+        ];
     }
 }

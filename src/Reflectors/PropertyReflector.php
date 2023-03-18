@@ -29,7 +29,7 @@ final class PropertyReflector implements ReflectorInterface
 
     public function getType(): TypeReflector
     {
-        return $this->builder->getType();
+        return new TypeReflector($this->builder->getType());
     }
 
     public function isPublic(): bool
@@ -78,21 +78,10 @@ final class PropertyReflector implements ReflectorInterface
         $propertyName = $this->getName();
 
         (Closure::bind(function(object $object) use ($propertyName, $value): void {
-            $object::{$propertyName} = $value;
+            $object::$$propertyName = $value;
         }, null, $object))($object);
 
         return $this;
-    }
-
-    public function __serialize(): array
-    {
-        return [
-            'name' => $this->getName(),
-            'modifier' => $this->getModifier(),
-            'type' => $this->getType()->getName(),
-            'default_value' => $this->getDefaultValue(),
-            'attributes' => $this->getAttributes()
-        ];
     }
 
     public function __toString(): string

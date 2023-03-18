@@ -5,13 +5,12 @@ namespace Codememory\Reflection\ReflectorBuilder;
 use Codememory\Reflection\Enum\KeyEnum;
 use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
 
-final class MethodBuilder implements ReflectorBuilderInterface
+final class ParameterBuilder implements ReflectorBuilderInterface
 {
     private ?string $name = null;
-    private ?int $modifier = null;
-    private bool $isConstruct = false;
+    private ?TypeBuilder $type = null;
+    private mixed $defaultValue = null;
     private array $attributes = [];
-    private array $parameters = [];
 
     public function getName(): ?string
     {
@@ -25,26 +24,26 @@ final class MethodBuilder implements ReflectorBuilderInterface
         return $this;
     }
 
-    public function getModifier(): ?int
+    public function getType(): ?TypeBuilder
     {
-        return $this->modifier;
+        return $this->type;
     }
 
-    public function setModifier(int $modifier): self
+    public function setType(TypeBuilder $type): self
     {
-        $this->modifier = $modifier;
+        $this->type = $type;
 
         return $this;
     }
 
-    public function isConstruct(): bool
+    public function getDefaultValue(): mixed
     {
-        return $this->isConstruct;
+        return $this->defaultValue;
     }
 
-    public function setIsConstruct(bool $is): self
+    public function setDefaultValue(mixed $defaultValue): self
     {
-        $this->isConstruct = $is;
+        $this->defaultValue = $defaultValue;
 
         return $this;
     }
@@ -67,46 +66,30 @@ final class MethodBuilder implements ReflectorBuilderInterface
         return $this;
     }
 
-    /**
-     * @return array<int, ParameterBuilder>
-     */
-    public function getParameters(): array
-    {
-        return $this->parameters;
-    }
-
-    /**
-     * @param array<int, ParameterBuilder> $parameters
-     */
-    public function setParameters(array $parameters): self
-    {
-        $this->parameters = $parameters;
-
-        return $this;
-    }
-
     public function fromArray(array $meta, callable $updateCacheCallback): ReflectorBuilderInterface
     {
         $expectKeys = [
             KeyEnum::NAME->value,
-            KeyEnum::MODIFIER->value,
-            KeyEnum::IS_CONSTRUCT->value,
-            KeyEnum::ATTRS->value,
-            KeyEnum::PARAMS->value,
+            KeyEnum::TYPE->value,
+            KeyEnum::DEFAULT_VALUE->value,
+            KeyEnum::ATTRS->value
         ];
 
         if (array_diff($expectKeys, array_keys($meta))) {
             $meta = $updateCacheCallback();
         }
 
+        $typeBuilder = new TypeBuilder();
+
+        $typeBuilder->fromArray($meta[KeyEnum::TYPE->value], $updateCacheCallback);
+
         $this->setName($meta[KeyEnum::NAME->value]);
-        $this->setModifier($meta[KeyEnum::MODIFIER->value]);
-        $this->setIsConstruct($meta[KeyEnum::IS_CONSTRUCT->value]);
+        $this->setType($typeBuilder);
+        $this->setDefaultValue($meta[KeyEnum::DEFAULT_VALUE->value]);
         $this->setAttributes(array_map(
             static fn (array $data) => (new AttributeBuilder())->fromArray($data, $updateCacheCallback),
             $meta[KeyEnum::ATTRS->value]
         ));
-        $this->setParameters($meta[KeyEnum::PARAMS->value]);
 
         return $this;
     }
@@ -115,10 +98,9 @@ final class MethodBuilder implements ReflectorBuilderInterface
     {
         return [
             KeyEnum::NAME->value => $this->getName(),
-            KeyEnum::MODIFIER->value => $this->getModifier(),
-            KeyEnum::IS_CONSTRUCT->value => $this->isConstruct(),
+            KeyEnum::TYPE->value => $this->getType()->toArray(),
+            KeyEnum::DEFAULT_VALUE->value => $this->getDefaultValue(),
             KeyEnum::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes()),
-            KeyEnum::PARAMS->value => array_map(static fn (ParameterBuilder $builder) => $builder->toArray(), $this->getParameters()),
         ];
     }
 }

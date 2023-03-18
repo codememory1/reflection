@@ -4,6 +4,8 @@ namespace Codememory\Reflection\Reflectors;
 
 use Codememory\Reflection\Interfaces\ReflectorInterface;
 use Codememory\Reflection\ReflectorBuilder\ClassBuilder;
+use Codememory\Reflection\ReflectorBuilder\MethodBuilder;
+use Codememory\Reflection\ReflectorBuilder\PropertyBuilder;
 use Codememory\Reflection\Reflectors\Traits\AttributeTrait;
 
 final class ClassReflector implements ReflectorInterface
@@ -68,7 +70,7 @@ final class ClassReflector implements ReflectorInterface
      */
     public function getMethods(): array
     {
-        return $this->builder->getMethods();
+        return array_map(static fn(MethodBuilder $builder) => new MethodReflector($builder), $this->builder->getMethods());
     }
 
     /**
@@ -76,7 +78,7 @@ final class ClassReflector implements ReflectorInterface
      */
     public function getStaticMethods(): array
     {
-        return array_filter($this->getMethods(), static fn(MethodReflector $methodReflector) => $methodReflector->isStatic());
+        return array_filter($this->getMethods(), static fn (MethodReflector $methodReflector) => $methodReflector->isStatic());
     }
 
     public function hasMethod(string $name): bool
@@ -95,7 +97,7 @@ final class ClassReflector implements ReflectorInterface
      */
     public function getProperties(): array
     {
-        return $this->builder->getProperties();
+        return array_map(static fn(PropertyBuilder $builder) => new PropertyReflector($builder), $this->builder->getProperties());
     }
 
     /**
@@ -103,7 +105,7 @@ final class ClassReflector implements ReflectorInterface
      */
     public function getStaticProperties(): array
     {
-        return array_filter($this->getProperties(), static fn(PropertyReflector $propertyReflector) => $propertyReflector->isStatic());
+        return array_filter($this->getProperties(), static fn (PropertyReflector $propertyReflector) => $propertyReflector->isStatic());
     }
 
     public function hasProperty(string $name): bool
@@ -115,23 +117,6 @@ final class ClassReflector implements ReflectorInterface
         }
 
         return false;
-    }
-
-    public function __serialize(): array
-    {
-        return [
-            'name' => $this->getName(),
-            'short_name' => $this->getShortName(),
-            'namespace' => $this->getNamespace(),
-            'is_abstract' => $this->isAbstract(),
-            'is_final' => $this->isFinal(),
-            'is_iterable' => $this->isIterable(),
-            'is_trait' => $this->isTrait(),
-            'is_interface' => $this->isInterface(),
-            'is_anonymous' => $this->isAnonymous(),
-            'method' => $this->getMethods(),
-            'properties' => $this->getProperties()
-        ];
     }
 
     public function __toString(): string
