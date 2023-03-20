@@ -7,6 +7,7 @@ use Codememory\Reflection\ReflectorBuilder\ClassBuilder;
 use Codememory\Reflection\ReflectorBuilder\MethodBuilder;
 use Codememory\Reflection\ReflectorBuilder\PropertyBuilder;
 use Codememory\Reflection\Reflectors\Traits\AttributeTrait;
+use ReflectionProperty;
 
 final class ClassReflector implements ReflectorInterface
 {
@@ -70,7 +71,7 @@ final class ClassReflector implements ReflectorInterface
      */
     public function getMethods(): array
     {
-        return array_map(static fn(MethodBuilder $builder) => new MethodReflector($builder), $this->builder->getMethods());
+        return array_map(static fn (MethodBuilder $builder) => new MethodReflector($builder), $this->builder->getMethods());
     }
 
     /**
@@ -97,7 +98,18 @@ final class ClassReflector implements ReflectorInterface
      */
     public function getProperties(): array
     {
-        return array_map(static fn(PropertyBuilder $builder) => new PropertyReflector($builder), $this->builder->getProperties());
+        return array_map(static fn (PropertyBuilder $builder) => new PropertyReflector($builder), $this->builder->getProperties());
+    }
+
+    public function getProperty(PropertyReflector $property): ?PropertyReflector
+    {
+        foreach ($this->getProperties() as $propertyReflector) {
+            if ($propertyReflector->getName() === $property->getName()) {
+                return $propertyReflector;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -106,6 +118,30 @@ final class ClassReflector implements ReflectorInterface
     public function getStaticProperties(): array
     {
         return array_filter($this->getProperties(), static fn (PropertyReflector $propertyReflector) => $propertyReflector->isStatic());
+    }
+
+    public function getPrivateProperties(): array
+    {
+        return array_filter(
+            $this->getProperties(),
+            static fn (PropertyReflector $propertyReflector) => $propertyReflector->getModifier() & ReflectionProperty::IS_PRIVATE
+        );
+    }
+
+    public function getPublicProperties(): array
+    {
+        return array_filter(
+            $this->getProperties(),
+            static fn (PropertyReflector $propertyReflector) => $propertyReflector->getModifier() & ReflectionProperty::IS_PUBLIC
+        );
+    }
+
+    public function getProtectedProperties(): array
+    {
+        return array_filter(
+            $this->getProperties(),
+            static fn (PropertyReflector $propertyReflector) => $propertyReflector->getModifier() & ReflectionProperty::IS_PROTECTED
+        );
     }
 
     public function hasProperty(string $name): bool

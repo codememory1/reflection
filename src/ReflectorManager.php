@@ -172,8 +172,6 @@ final class ReflectorManager
 
     /**
      * @param array<int, ReflectionParameter> $reflectionParameters
-     *
-     * @throws ReflectionException
      */
     private function buildParameters(array $reflectionParameters): array
     {
@@ -185,7 +183,11 @@ final class ReflectorManager
             $builder->setName($reflectionParameter->getName());
             $builder->setType($this->buildNamedType($reflectionParameter->getType()));
             $builder->setAttributes($this->buildAttributes($reflectionParameter->getAttributes()));
-            $builder->setDefaultValue($reflectionParameter->getDefaultValue());
+
+            try {
+                $builder->setDefaultValue($reflectionParameter->getDefaultValue());
+            } catch (ReflectionException) {
+            }
 
             $parameters[] = $builder;
         }
