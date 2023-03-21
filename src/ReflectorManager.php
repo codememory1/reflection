@@ -128,6 +128,7 @@ final class ReflectorManager
         foreach ($reflectionProperties as $reflectionProperty) {
             $builder = new PropertyBuilder();
 
+            $builder->setClass($reflectionProperty->class);
             $builder->setName($reflectionProperty->getName());
             $builder->setType($this->buildNamedType($reflectionProperty->getType()));
             $builder->setModifier($reflectionProperty->getModifiers());

@@ -19,6 +19,11 @@ final class PropertyReflector implements ReflectorInterface
     ) {
     }
 
+    public function getClass(): string
+    {
+        return $this->builder->getClass();
+    }
+
     public function getName(): string
     {
         return $this->builder->getName();

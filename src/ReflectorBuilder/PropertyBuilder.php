@@ -9,10 +9,23 @@ use Codememory\Reflection\ReflectorBuilder\Traits\TypeTrait;
 final class PropertyBuilder implements ReflectorBuilderInterface
 {
     use TypeTrait;
+    private ?string $class = null;
     private ?string $name = null;
     private ?int $modifier = null;
     private mixed $defaultValue = null;
     private array $attributes = [];
+
+    public function getClass(): ?string
+    {
+        return $this->class;
+    }
+
+    public function setClass(string $class): self
+    {
+        $this->class = $class;
+
+        return $this;
+    }
 
     public function getName(): ?string
     {
@@ -71,6 +84,7 @@ final class PropertyBuilder implements ReflectorBuilderInterface
     public function fromArray(array $meta, callable $updateCacheCallback): ReflectorBuilderInterface
     {
         $expectKeys = [
+            KeyEnum::NAMESPACE->value,
             KeyEnum::NAME->value,
             KeyEnum::MODIFIER->value,
             KeyEnum::TYPE->value,
@@ -82,6 +96,7 @@ final class PropertyBuilder implements ReflectorBuilderInterface
             $meta = $updateCacheCallback();
         }
 
+        $this->setClass($meta[KeyEnum::NAMESPACE->value]);
         $this->setName($meta[KeyEnum::NAME->value]);
         $this->setModifier($meta[KeyEnum::MODIFIER->value]);
         $this->setType($this->typeToBuilder($meta, $updateCacheCallback));
@@ -97,6 +112,7 @@ final class PropertyBuilder implements ReflectorBuilderInterface
     public function toArray(): array
     {
         return [
+            KeyEnum::NAMESPACE->value => $this->getClass(),
             KeyEnum::NAME->value => $this->getName(),
             KeyEnum::MODIFIER->value => $this->getModifier(),
             KeyEnum::TYPE->value => $this->typeToArray(),
