@@ -37,7 +37,7 @@ trait TypeTrait
 
         if (is_array($type[array_key_first($type)])) {
             return array_map(
-                static fn (array $data) => (new TypeBuilder())->fromArray($type, $updateCacheCallback),
+                static fn (array $data) => (new TypeBuilder())->fromArray($data, $updateCacheCallback),
                 $type
             );
         }
