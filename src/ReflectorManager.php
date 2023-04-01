@@ -40,7 +40,7 @@ final class ReflectorManager
             throw new RuntimeException("Class {$namespace} not found");
         }
 
-        $cacheItem = $this->cache->getItem($namespace);
+        $cacheItem = $this->cache->getItem(strtr($namespace, '\\', '_'));
 
         if ($this->isDev) {
             return new ClassReflector($this->updateCache($cacheItem, $namespace));
