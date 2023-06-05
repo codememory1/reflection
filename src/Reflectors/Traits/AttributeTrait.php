@@ -12,7 +12,7 @@ trait AttributeTrait
      */
     public function getAttributes(): array
     {
-        return array_map(static fn(AttributeBuilder $builder) => new AttributeReflector($builder), $this->builder->getAttributes());
+        return array_map(static fn (AttributeBuilder $builder) => new AttributeReflector($builder), $this->builder->getAttributes());
     }
 
     public function getAttributesByInstance(string $instance): array

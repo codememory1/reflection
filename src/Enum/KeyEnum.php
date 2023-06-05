@@ -28,4 +28,5 @@ enum KeyEnum: string
     case TYPE = 'type';
     case ALLOW_NULLABLE = 'allow_nullable';
     case IS_BUILTIN = 'is_builtin';
+    case PARENT = 'parent';
 }

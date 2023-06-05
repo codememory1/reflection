@@ -65,7 +65,7 @@ final class MethodReflector implements ReflectorInterface
 
     public function getParameters(): array
     {
-        return array_map(static fn(ParameterBuilder $builder) => new ParameterReflector($builder), $this->builder->getParameters());
+        return array_map(static fn (ParameterBuilder $builder) => new ParameterReflector($builder), $this->builder->getParameters());
     }
 
     public function invoke(object $object, mixed ...$args): self

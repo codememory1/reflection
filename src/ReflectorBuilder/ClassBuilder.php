@@ -10,6 +10,7 @@ final class ClassBuilder implements ReflectorBuilderInterface
     private ?string $name = null;
     private ?string $shortName = null;
     private ?string $namespace = null;
+    private ?ClassBuilder $parent = null;
     private bool $isAbstract = false;
     private bool $isFinal = false;
     private bool $isIterable = false;
@@ -52,6 +53,18 @@ final class ClassBuilder implements ReflectorBuilderInterface
     public function setNamespace(?string $namespace): self
     {
         $this->namespace = $namespace;
+
+        return $this;
+    }
+
+    public function getParent(): ?ClassBuilder
+    {
+        return $this->parent;
+    }
+
+    public function setParent(?ClassBuilder $parent): self
+    {
+        $this->parent = $parent;
 
         return $this;
     }
@@ -200,6 +213,7 @@ final class ClassBuilder implements ReflectorBuilderInterface
             KeyEnum::METHODS->value,
             KeyEnum::PROPS->value,
             KeyEnum::ATTRS->value,
+            KeyEnum::PARENT->value,
         ];
 
         if (array_diff($expectKeys, array_keys($meta))) {
@@ -209,6 +223,7 @@ final class ClassBuilder implements ReflectorBuilderInterface
         $this->setName($meta[KeyEnum::NAME->value]);
         $this->setShortName($meta[KeyEnum::SHORT_NAME->value]);
         $this->setNamespace($meta[KeyEnum::NAMESPACE->value]);
+        $this->setParent($meta[KeyEnum::PARENT->value]);
         $this->setIsFinal($meta[KeyEnum::IS_FINAL->value]);
         $this->setIsAbstract($meta[KeyEnum::IS_ABSTRACT->value]);
         $this->setIsIterable($meta[KeyEnum::IS_ITERABLE->value]);
@@ -237,6 +252,7 @@ final class ClassBuilder implements ReflectorBuilderInterface
             KeyEnum::NAME->value => $this->getName(),
             KeyEnum::SHORT_NAME->value => $this->getShortName(),
             KeyEnum::NAMESPACE->value => $this->getNamespace(),
+            KeyEnum::PARENT->value => $this->getParent()?->toArray(),
             KeyEnum::IS_ABSTRACT->value => $this->isAbstract(),
             KeyEnum::IS_FINAL->value => $this->isFinal(),
             KeyEnum::IS_ITERABLE->value => $this->isIterable(),

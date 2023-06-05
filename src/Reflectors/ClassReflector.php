@@ -33,6 +33,13 @@ final class ClassReflector implements ReflectorInterface
         return $this->builder->getNamespace();
     }
 
+    public function getParent(): ?ClassReflector
+    {
+        $parent = $this->builder->getParent();
+
+        return null === $parent ? null : new self($parent);
+    }
+
     public function isAbstract(): bool
     {
         return $this->builder->isAbstract();
@@ -91,6 +98,29 @@ final class ClassReflector implements ReflectorInterface
         }
 
         return false;
+    }
+
+    /**
+     * @param array<int, string> $excludeParentClasses
+     *
+     * @return array<int, PropertyReflector>
+     */
+    public function getPropertiesIncludingParent(array $excludeParentClasses = []): array
+    {
+        $properties = [];
+        $parent = $this->getParent();
+
+        while (null !== $parent) {
+            if (!in_array($parent->getName(), $excludeParentClasses)) {
+                $properties += array_map(static fn (PropertyBuilder $builder) => new PropertyReflector($builder), $this->builder->getProperties());
+            }
+
+            $parent = $parent->getParent();
+        }
+
+        $properties += $this->getProperties();
+
+        return $properties;
     }
 
     /**
