@@ -76,11 +76,14 @@ final class ReflectorManager
      */
     private function buildClass(ReflectionClass $reflectionClass): ClassBuilder
     {
+        $parent = $reflectionClass->getParentClass();
+
         $classBuilder = new ClassBuilder();
 
         $classBuilder->setName($reflectionClass->getName());
         $classBuilder->setShortName($reflectionClass->getShortName());
         $classBuilder->setNamespace($reflectionClass->getNamespaceName());
+        $classBuilder->setParent(false === $parent ? null : $this->buildClass($parent));
         $classBuilder->setIsAbstract($reflectionClass->isAbstract());
         $classBuilder->setIsFinal($reflectionClass->isFinal());
         $classBuilder->setIsIterable($reflectionClass->isIterable());
@@ -96,8 +99,6 @@ final class ReflectorManager
 
     /**
      * @param array<int, ReflectionMethod> $reflectionMethods
-     *
-     * @throws ReflectionException
      */
     private function buildMethods(array $reflectionMethods): array
     {
