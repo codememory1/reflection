@@ -112,7 +112,7 @@ final class ClassReflector implements ReflectorInterface
 
         while (null !== $parent) {
             if (!in_array($parent->getName(), $excludeParentClasses)) {
-                $properties = array_merge($properties, $parent->getProperties($modifier));
+                $properties = array_merge($parent->getProperties($modifier), $properties);
             }
 
             $parent = $parent->getParent();
