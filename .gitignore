@@ -1,3 +1,5 @@
 .DS_Store
 vendor/
 composer.lock
+.php-cs-fixer.dist.php
+.php-cs-fixer.cache
