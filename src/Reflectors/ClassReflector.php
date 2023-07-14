@@ -105,28 +105,39 @@ final class ClassReflector implements ReflectorInterface
      *
      * @return array<int, PropertyReflector>
      */
-    public function getPropertiesIncludingParent(array $excludeParentClasses = []): array
+    public function getPropertiesIncludingParent(array $excludeParentClasses = [], ?int $modifier = null): array
     {
         $properties = [];
         $parent = $this->getParent();
 
         while (null !== $parent) {
             if (!in_array($parent->getName(), $excludeParentClasses)) {
-                $properties = array_merge($properties, $parent->getProperties());
+                $properties = array_merge($parent->getProperties($modifier), $properties);
             }
 
             $parent = $parent->getParent();
         }
 
-        return array_merge($properties, $this->getProperties());
+        return array_merge($properties, $this->getProperties($modifier));
     }
 
     /**
      * @return array<int, PropertyReflector>
      */
-    public function getProperties(): array
+    public function getProperties(?int $modifier = null): array
     {
-        return array_map(static fn (PropertyBuilder $builder) => new PropertyReflector($builder), $this->builder->getProperties());
+        $thisName = $this->getName();
+        $properties = array_map(static fn (PropertyBuilder $builder) => new PropertyReflector($builder), $this->builder->getProperties());
+
+        return array_filter($properties, static function (PropertyReflector $property) use ($thisName, $modifier) {
+            $belongsToClass = $property->getClass() === $thisName;
+
+            if (null === $modifier) {
+                return $belongsToClass;
+            }
+
+            return $belongsToClass && $property->getModifier() & $modifier;
+        });
     }
 
     /**
