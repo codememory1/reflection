@@ -25,6 +25,7 @@ enum KeyEnum: string
     case IS_CONSTRUCT = 'is_construct';
     case MODIFIER = 'modifier';
     case DEFAULT_VALUE = 'default_value';
+    case VALUE = 'value';
     case TYPE = 'type';
     case ALLOW_NULLABLE = 'allow_nullable';
     case IS_BUILTIN = 'is_builtin';

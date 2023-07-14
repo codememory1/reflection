@@ -140,10 +140,24 @@ final class ClassReflector implements ReflectorInterface
         });
     }
 
+    /**
+     * @deprecated This method is deprecated and will be removed in the future! We recommend using the getPropertyByName method
+     */
     public function getProperty(PropertyReflector $property): ?PropertyReflector
     {
         foreach ($this->getProperties() as $propertyReflector) {
             if ($propertyReflector->getName() === $property->getName()) {
+                return $propertyReflector;
+            }
+        }
+
+        return null;
+    }
+
+    public function getPropertyByName(string $name): ?PropertyReflector
+    {
+        foreach ($this->getProperties() as $propertyReflector) {
+            if ($propertyReflector->getName() === $name) {
                 return $propertyReflector;
             }
         }

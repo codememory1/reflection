@@ -64,17 +64,41 @@ final class PropertyReflector implements ReflectorInterface
         return $this->builder->getDefaultValue();
     }
 
+    public function getValue(object $object): mixed
+    {
+        $that = $this;
+        $value = null;
+
+        (Closure::bind(function(object $object) use (&$value, $that): void {
+            if ($that->isStatic()) {
+                $value = $object::${$that->getName()};
+            } else {
+                $value = $object->{$that->getName()};
+            }
+        }, null, $object))($object);
+
+        return $value;
+    }
+
     public function setValue(object $object, mixed $value): self
     {
+        $that = $this;
         $propertyName = $this->getName();
 
-        (Closure::bind(function(object $object) use ($propertyName, $value): void {
-            $object->$propertyName = $value;
+        (Closure::bind(function(object $object) use ($propertyName, $value, $that): void {
+            if ($that->isStatic()) {
+                $object::$$propertyName = $value;
+            } else {
+                $object->$propertyName = $value;
+            }
         }, null, $object))($object);
 
         return $this;
     }
 
+    /**
+     * @deprecated This method is deprecated and will be removed in the future! We recommend using the setValue method
+     */
     public function setStaticValue(object $object, mixed $value): self
     {
         $propertyName = $this->getName();
