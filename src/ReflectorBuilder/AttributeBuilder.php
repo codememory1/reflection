@@ -2,7 +2,7 @@
 
 namespace Codememory\Reflection\ReflectorBuilder;
 
-use Codememory\Reflection\Enum\KeyEnum;
+use Codememory\Reflection\Enum\MetaKey;
 use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
 
 final class AttributeBuilder implements ReflectorBuilderInterface
@@ -73,25 +73,13 @@ final class AttributeBuilder implements ReflectorBuilderInterface
         return $this;
     }
 
-    public function fromArray(array $meta, callable $updateCacheCallback): ReflectorBuilderInterface
+    public function fromArray(array $meta): ReflectorBuilderInterface
     {
-        $expectKeys = [
-            KeyEnum::NAME->value,
-            KeyEnum::ARGUMENTS->value,
-            KeyEnum::TARGET->value,
-            KeyEnum::IS_REPEATED_KEY->value,
-            KeyEnum::INSTANCE->value,
-        ];
-
-        if (array_diff($expectKeys, array_keys($meta))) {
-            $meta = $updateCacheCallback();
-        }
-
-        $this->setName($meta[KeyEnum::NAME->value]);
-        $this->setArguments($meta[KeyEnum::ARGUMENTS->value]);
-        $this->setTarget($meta[KeyEnum::TARGET->value]);
-        $this->setIsRepeated($meta[KeyEnum::IS_REPEATED_KEY->value]);
-        $this->setInstance($meta[KeyEnum::INSTANCE->value]);
+        $this->setName($meta[MetaKey::NAME->value]);
+        $this->setArguments($meta[MetaKey::ARGUMENTS->value]);
+        $this->setTarget($meta[MetaKey::TARGET->value]);
+        $this->setIsRepeated($meta[MetaKey::IS_REPEATED_KEY->value]);
+        $this->setInstance($meta[MetaKey::INSTANCE->value]);
 
         return $this;
     }
@@ -99,11 +87,11 @@ final class AttributeBuilder implements ReflectorBuilderInterface
     public function toArray(): array
     {
         return [
-            KeyEnum::NAME->value => $this->getName(),
-            KeyEnum::ARGUMENTS->value => $this->getArguments(),
-            KeyEnum::TARGET->value => $this->getTarget(),
-            KeyEnum::IS_REPEATED_KEY->value => $this->isRepeated,
-            KeyEnum::INSTANCE->value => $this->getInstance()
+            MetaKey::NAME->value => $this->getName(),
+            MetaKey::ARGUMENTS->value => $this->getArguments(),
+            MetaKey::TARGET->value => $this->getTarget(),
+            MetaKey::IS_REPEATED_KEY->value => $this->isRepeated,
+            MetaKey::INSTANCE->value => $this->getInstance()
         ];
     }
 }

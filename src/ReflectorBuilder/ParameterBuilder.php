@@ -2,7 +2,7 @@
 
 namespace Codememory\Reflection\ReflectorBuilder;
 
-use Codememory\Reflection\Enum\KeyEnum;
+use Codememory\Reflection\Enum\MetaKey;
 use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
 use Codememory\Reflection\ReflectorBuilder\Traits\TypeTrait;
 
@@ -55,25 +55,14 @@ final class ParameterBuilder implements ReflectorBuilderInterface
         return $this;
     }
 
-    public function fromArray(array $meta, callable $updateCacheCallback): ReflectorBuilderInterface
+    public function fromArray(array $meta): ReflectorBuilderInterface
     {
-        $expectKeys = [
-            KeyEnum::NAME->value,
-            KeyEnum::TYPE->value,
-            KeyEnum::DEFAULT_VALUE->value,
-            KeyEnum::ATTRS->value
-        ];
-
-        if (array_diff($expectKeys, array_keys($meta))) {
-            $meta = $updateCacheCallback();
-        }
-
-        $this->setName($meta[KeyEnum::NAME->value]);
-        $this->setType($this->typeToBuilder($meta, $updateCacheCallback));
-        $this->setDefaultValue($meta[KeyEnum::DEFAULT_VALUE->value]);
+        $this->setName($meta[MetaKey::NAME->value]);
+        $this->setType($this->typeToBuilder($meta));
+        $this->setDefaultValue($meta[MetaKey::DEFAULT_VALUE->value]);
         $this->setAttributes(array_map(
-            static fn (array $data) => (new AttributeBuilder())->fromArray($data, $updateCacheCallback),
-            $meta[KeyEnum::ATTRS->value]
+            static fn (array $data) => (new AttributeBuilder())->fromArray($data),
+            $meta[MetaKey::ATTRS->value]
         ));
 
         return $this;
@@ -82,10 +71,10 @@ final class ParameterBuilder implements ReflectorBuilderInterface
     public function toArray(): array
     {
         return [
-            KeyEnum::NAME->value => $this->getName(),
-            KeyEnum::TYPE->value => $this->typeToArray(),
-            KeyEnum::DEFAULT_VALUE->value => $this->getDefaultValue(),
-            KeyEnum::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes()),
+            MetaKey::NAME->value => $this->getName(),
+            MetaKey::TYPE->value => $this->typeToArray(),
+            MetaKey::DEFAULT_VALUE->value => $this->getDefaultValue(),
+            MetaKey::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes()),
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace Codememory\Reflection;
 
 use Codememory\Reflection\ReflectorBuilder\AttributeBuilder;
 use Codememory\Reflection\ReflectorBuilder\ClassBuilder;
+use Codememory\Reflection\ReflectorBuilder\ClassConstantBuilder;
 use Codememory\Reflection\ReflectorBuilder\MethodBuilder;
 use Codememory\Reflection\ReflectorBuilder\ParameterBuilder;
 use Codememory\Reflection\ReflectorBuilder\PropertyBuilder;
@@ -12,6 +13,7 @@ use Codememory\Reflection\Reflectors\ClassReflector;
 use Psr\Cache\InvalidArgumentException;
 use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionClassConstant;
 use ReflectionException;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -22,11 +24,11 @@ use RuntimeException;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
 use Symfony\Contracts\Cache\ItemInterface;
 
-final class ReflectorManager
+final readonly class ReflectorManager
 {
     public function __construct(
-        private readonly AbstractAdapter $cache,
-        private readonly bool $isDev = true
+        private AbstractAdapter $cache,
+        private bool $isDev = true
     ) {
     }
 
@@ -52,7 +54,7 @@ final class ReflectorManager
 
         $classBuilder = new ClassBuilder();
 
-        $classBuilder->fromArray($cacheItem->get(), fn () => $this->updateCache($cacheItem, $namespace)->toArray());
+        $classBuilder->fromArray($cacheItem->get());
 
         return new ClassReflector($classBuilder);
     }
@@ -83,6 +85,7 @@ final class ReflectorManager
         $classBuilder->setName($reflectionClass->getName());
         $classBuilder->setShortName($reflectionClass->getShortName());
         $classBuilder->setNamespace($reflectionClass->getNamespaceName());
+        $classBuilder->setModifiers($reflectionClass->getModifiers());
         $classBuilder->setParent(false === $parent ? null : $this->buildClass($parent));
         $classBuilder->setIsAbstract($reflectionClass->isAbstract());
         $classBuilder->setIsFinal($reflectionClass->isFinal());
@@ -90,9 +93,20 @@ final class ReflectorManager
         $classBuilder->setIsTrait($reflectionClass->isTrait());
         $classBuilder->setIsInterface($reflectionClass->isInterface());
         $classBuilder->setIsAnonymous($reflectionClass->isAnonymous());
+        $classBuilder->setIsCloneable($reflectionClass->isCloneable());
+        $classBuilder->setIsCustom(!$reflectionClass->isInternal() && $reflectionClass->isUserDefined());
         $classBuilder->setMethods($this->buildMethods($reflectionClass->getMethods()));
         $classBuilder->setProperties($this->buildProperties($reflectionClass->getProperties()));
         $classBuilder->setAttributes($this->buildAttributes($reflectionClass->getAttributes()));
+        $classBuilder->setConstants($this->buildClassConstants($reflectionClass->getReflectionConstants()));
+        $classBuilder->setTraits(array_map(
+            fn (ReflectionClass $reflectionClass) => $this->buildClass($reflectionClass),
+            $reflectionClass->getTraits()
+        ));
+        $classBuilder->setInterfaces(array_map(
+            fn (ReflectionClass $reflectionClass) => $this->buildClass($reflectionClass),
+            $reflectionClass->getInterfaces()
+        ));
 
         return $classBuilder;
     }
@@ -217,5 +231,26 @@ final class ReflectorManager
         }
 
         return $attributes;
+    }
+
+    /**
+     * @param array<int, ReflectionClassConstant> $reflectionClassConstants
+     */
+    private function buildClassConstants(array $reflectionClassConstants): array
+    {
+        $builders = [];
+
+        foreach ($reflectionClassConstants as $reflectionClassConstant) {
+            $builder = new ClassConstantBuilder();
+
+            $builder->setName($reflectionClassConstant->getName());
+            $builder->setModifiers($reflectionClassConstant->getModifiers());
+            $builder->setValue($reflectionClassConstant->getValue());
+            $builder->setAttributes($this->buildAttributes($reflectionClassConstant->getAttributes()));
+
+            $builders[] = $builder;
+        }
+
+        return $builders;
     }
 }

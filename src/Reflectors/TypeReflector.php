@@ -5,10 +5,10 @@ namespace Codememory\Reflection\Reflectors;
 use Codememory\Reflection\Interfaces\ReflectorInterface;
 use Codememory\Reflection\ReflectorBuilder\TypeBuilder;
 
-final class TypeReflector implements ReflectorInterface
+final readonly class TypeReflector implements ReflectorInterface
 {
     public function __construct(
-        private readonly TypeBuilder $builder
+        private TypeBuilder $builder
     ) {
     }
 

@@ -9,13 +9,13 @@ use Codememory\Reflection\Reflectors\Traits\AttributeTrait;
 use Codememory\Reflection\Reflectors\Traits\TypeTrait;
 use ReflectionProperty;
 
-final class PropertyReflector implements ReflectorInterface
+final readonly class PropertyReflector implements ReflectorInterface
 {
     use AttributeTrait;
     use TypeTrait;
 
     public function __construct(
-        private readonly PropertyBuilder $builder
+        private PropertyBuilder $builder
     ) {
     }
 
@@ -91,20 +91,6 @@ final class PropertyReflector implements ReflectorInterface
             } else {
                 $object->$propertyName = $value;
             }
-        }, null, $object))($object);
-
-        return $this;
-    }
-
-    /**
-     * @deprecated This method is deprecated and will be removed in the future! We recommend using the setValue method
-     */
-    public function setStaticValue(object $object, mixed $value): self
-    {
-        $propertyName = $this->getName();
-
-        (Closure::bind(function(object $object) use ($propertyName, $value): void {
-            $object::$$propertyName = $value;
         }, null, $object))($object);
 
         return $this;

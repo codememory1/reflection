@@ -5,10 +5,10 @@ namespace Codememory\Reflection\Reflectors;
 use Codememory\Reflection\Interfaces\ReflectorInterface;
 use Codememory\Reflection\ReflectorBuilder\AttributeBuilder;
 
-final class AttributeReflector implements ReflectorInterface
+final readonly class AttributeReflector implements ReflectorInterface
 {
     public function __construct(
-        private readonly AttributeBuilder $builder
+        private AttributeBuilder $builder
     ) {
     }
 
@@ -40,6 +40,16 @@ final class AttributeReflector implements ReflectorInterface
     public function getInstance(): object
     {
         return $this->builder->getInstance();
+    }
+
+    public function getHash(): string
+    {
+        return spl_object_hash($this->getInstance());
+    }
+
+    public function getId(): int
+    {
+        return spl_object_id($this->getInstance());
     }
 
     public function __toString(): string

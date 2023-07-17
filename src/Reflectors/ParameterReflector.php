@@ -7,13 +7,13 @@ use Codememory\Reflection\ReflectorBuilder\ParameterBuilder;
 use Codememory\Reflection\Reflectors\Traits\AttributeTrait;
 use Codememory\Reflection\Reflectors\Traits\TypeTrait;
 
-final class ParameterReflector implements ReflectorInterface
+final readonly class ParameterReflector implements ReflectorInterface
 {
     use AttributeTrait;
     use TypeTrait;
 
     public function __construct(
-        private readonly ParameterBuilder $builder
+        private ParameterBuilder $builder
     ) {
     }
 

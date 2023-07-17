@@ -9,12 +9,12 @@ use Codememory\Reflection\ReflectorBuilder\ParameterBuilder;
 use Codememory\Reflection\Reflectors\Traits\AttributeTrait;
 use ReflectionMethod;
 
-final class MethodReflector implements ReflectorInterface
+final readonly class MethodReflector implements ReflectorInterface
 {
     use AttributeTrait;
 
     public function __construct(
-        private readonly MethodBuilder $builder
+        private MethodBuilder $builder
     ) {
     }
 

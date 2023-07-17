@@ -2,7 +2,7 @@
 
 namespace Codememory\Reflection\ReflectorBuilder;
 
-use Codememory\Reflection\Enum\KeyEnum;
+use Codememory\Reflection\Enum\MetaKey;
 use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
 
 final class TypeBuilder implements ReflectorBuilderInterface
@@ -47,21 +47,11 @@ final class TypeBuilder implements ReflectorBuilderInterface
         return $this;
     }
 
-    public function fromArray(array $meta, callable $updateCacheCallback): ReflectorBuilderInterface
+    public function fromArray(array $meta): ReflectorBuilderInterface
     {
-        $expectKeys = [
-            KeyEnum::NAME->value,
-            KeyEnum::ALLOW_NULLABLE->value,
-            KeyEnum::IS_BUILTIN->value
-        ];
-
-        if (array_diff($expectKeys, array_keys($meta))) {
-            $meta = $updateCacheCallback();
-        }
-
-        $this->setName($meta[KeyEnum::NAME->value]);
-        $this->setAllowNullable($meta[KeyEnum::ALLOW_NULLABLE->value]);
-        $this->setIsBuiltin($meta[KeyEnum::IS_BUILTIN->value]);
+        $this->setName($meta[MetaKey::NAME->value]);
+        $this->setAllowNullable($meta[MetaKey::ALLOW_NULLABLE->value]);
+        $this->setIsBuiltin($meta[MetaKey::IS_BUILTIN->value]);
 
         return $this;
     }
@@ -69,9 +59,9 @@ final class TypeBuilder implements ReflectorBuilderInterface
     public function toArray(): array
     {
         return [
-            KeyEnum::NAME->value => $this->getName(),
-            KeyEnum::ALLOW_NULLABLE->value => $this->allowNullable(),
-            KeyEnum::IS_BUILTIN->value => $this->isBuiltin()
+            MetaKey::NAME->value => $this->getName(),
+            MetaKey::ALLOW_NULLABLE->value => $this->allowNullable(),
+            MetaKey::IS_BUILTIN->value => $this->isBuiltin()
         ];
     }
 }

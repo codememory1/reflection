@@ -2,7 +2,7 @@
 
 namespace Codememory\Reflection\ReflectorBuilder\Traits;
 
-use Codememory\Reflection\Enum\KeyEnum;
+use Codememory\Reflection\Enum\MetaKey;
 use Codememory\Reflection\ReflectorBuilder\TypeBuilder;
 use function is_array;
 
@@ -31,20 +31,20 @@ trait TypeTrait
     /**
      * @return array<int, TypeBuilder>|TypeBuilder
      */
-    private function typeToBuilder(array $meta, $updateCacheCallback): TypeBuilder|array
+    private function typeToBuilder(array $meta): TypeBuilder|array
     {
-        $type = $meta[KeyEnum::TYPE->value];
+        $type = $meta[MetaKey::TYPE->value];
 
         if (is_array($type[array_key_first($type)])) {
             return array_map(
-                static fn (array $data) => (new TypeBuilder())->fromArray($data, $updateCacheCallback),
+                static fn (array $data) => (new TypeBuilder())->fromArray($data),
                 $type
             );
         }
 
         $builder = new TypeBuilder();
 
-        $builder->fromArray($type, $updateCacheCallback);
+        $builder->fromArray($type);
 
         return $builder;
     }
