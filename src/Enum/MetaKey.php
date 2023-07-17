@@ -2,13 +2,15 @@
 
 namespace Codememory\Reflection\Enum;
 
-enum KeyEnum: string
+enum MetaKey: string
 {
     case NAME = 'name';
     case SHORT_NAME = 'short_name';
     case NAMESPACE = 'namespace';
     case ARGUMENTS = 'arguments';
     case ATTRS = 'attributes';
+    case TRAITS = 'traits';
+    case INTERFACES = 'interfaces';
     case PROPS = 'properties';
     case METHODS = 'methods';
     case TARGET = 'target';
@@ -19,6 +21,7 @@ enum KeyEnum: string
     case IS_ABSTRACT = 'is_abstract';
     case IS_READ_ONLY = 'is_read_only';
     case IS_ANONYMOUS = 'is_anonymous';
+    case IS_CLONEABLE = 'is_cloneable';
     case IS_ITERABLE = 'is_iterable';
     case IS_TRAIT = 'is_trait';
     case IS_INTERFACE = 'is_interface';
@@ -30,4 +33,6 @@ enum KeyEnum: string
     case ALLOW_NULLABLE = 'allow_nullable';
     case IS_BUILTIN = 'is_builtin';
     case PARENT = 'parent';
+    case CLASS_CONSTANT = 'class_constant';
+    case CUSTOM = 'custom';
 }

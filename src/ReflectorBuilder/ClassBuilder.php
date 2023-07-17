@@ -2,7 +2,7 @@
 
 namespace Codememory\Reflection\ReflectorBuilder;
 
-use Codememory\Reflection\Enum\KeyEnum;
+use Codememory\Reflection\Enum\MetaKey;
 use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
 
 final class ClassBuilder implements ReflectorBuilderInterface
@@ -10,6 +10,7 @@ final class ClassBuilder implements ReflectorBuilderInterface
     private ?string $name = null;
     private ?string $shortName = null;
     private ?string $namespace = null;
+    private ?int $modifiers = null;
     private ?ClassBuilder $parent = null;
     private bool $isAbstract = false;
     private bool $isFinal = false;
@@ -17,9 +18,14 @@ final class ClassBuilder implements ReflectorBuilderInterface
     private bool $isTrait = false;
     private bool $isInterface = false;
     private bool $isAnonymous = false;
+    private bool $isCloneable = false;
     private array $methods = [];
     private array $properties = [];
     private array $attributes = [];
+    private array $constants = [];
+    private array $traits = [];
+    private array $interfaces = [];
+    private bool $isCustom = false;
 
     public function getName(): ?string
     {
@@ -57,12 +63,24 @@ final class ClassBuilder implements ReflectorBuilderInterface
         return $this;
     }
 
-    public function getParent(): ?ClassBuilder
+    public function getModifiers(): ?int
+    {
+        return $this->modifiers;
+    }
+
+    public function setModifiers(int $modifiers): self
+    {
+        $this->modifiers = $modifiers;
+
+        return $this;
+    }
+
+    public function getParent(): ?self
     {
         return $this->parent;
     }
 
-    public function setParent(?ClassBuilder $parent): self
+    public function setParent(?self $parent): self
     {
         $this->parent = $parent;
 
@@ -144,6 +162,18 @@ final class ClassBuilder implements ReflectorBuilderInterface
         return $this;
     }
 
+    public function isCloneable(): bool
+    {
+        return $this->isCloneable;
+    }
+
+    public function setIsCloneable(bool $isCloneable): self
+    {
+        $this->isCloneable = $isCloneable;
+
+        return $this;
+    }
+
     /**
      * @return array<int, MethodBuilder>
      */
@@ -198,50 +228,110 @@ final class ClassBuilder implements ReflectorBuilderInterface
         return $this;
     }
 
-    public function fromArray(array $meta, callable $updateCacheCallback): ReflectorBuilderInterface
+    /**
+     * @return array<int, ClassConstantBuilder>
+     */
+    public function getConstants(): array
     {
-        $expectKeys = [
-            KeyEnum::NAME->value,
-            KeyEnum::SHORT_NAME->value,
-            KeyEnum::NAMESPACE->value,
-            KeyEnum::IS_ABSTRACT->value,
-            KeyEnum::IS_FINAL->value,
-            KeyEnum::IS_ITERABLE->value,
-            KeyEnum::IS_TRAIT->value,
-            KeyEnum::IS_INTERFACE->value,
-            KeyEnum::IS_ANONYMOUS->value,
-            KeyEnum::METHODS->value,
-            KeyEnum::PROPS->value,
-            KeyEnum::ATTRS->value,
-            KeyEnum::PARENT->value,
-        ];
+        return $this->constants;
+    }
 
-        if (array_diff($expectKeys, array_keys($meta))) {
-            $meta = $updateCacheCallback();
-        }
+    /**
+     * @param array<int, ClassConstantBuilder> $constants
+     */
+    public function setConstants(array $constants): self
+    {
+        $this->constants = $constants;
 
-        $this->setName($meta[KeyEnum::NAME->value]);
-        $this->setShortName($meta[KeyEnum::SHORT_NAME->value]);
-        $this->setNamespace($meta[KeyEnum::NAMESPACE->value]);
-        $this->setParent($meta[KeyEnum::PARENT->value]);
-        $this->setIsFinal($meta[KeyEnum::IS_FINAL->value]);
-        $this->setIsAbstract($meta[KeyEnum::IS_ABSTRACT->value]);
-        $this->setIsIterable($meta[KeyEnum::IS_ITERABLE->value]);
-        $this->setIsTrait($meta[KeyEnum::IS_TRAIT->value]);
-        $this->setIsInterface($meta[KeyEnum::IS_INTERFACE->value]);
-        $this->setIsAnonymous($meta[KeyEnum::IS_ANONYMOUS->value]);
+        return $this;
+    }
+
+    /**
+     * @return array<int, ClassBuilder>
+     */
+    public function getTraits(): array
+    {
+        return $this->traits;
+    }
+
+    /**
+     * @param array<int, ClassBuilder> $traits
+     */
+    public function setTraits(array $traits): self
+    {
+        $this->traits = $traits;
+
+        return $this;
+    }
+
+    /**
+     * @return array<int, ClassBuilder>
+     */
+    public function getInterfaces(): array
+    {
+        return $this->interfaces;
+    }
+
+    /**
+     * @param array<int, ClassBuilder> $interfaces
+     */
+    public function setInterfaces(array $interfaces): self
+    {
+        $this->interfaces = $interfaces;
+
+        return $this;
+    }
+
+    public function isCustom(): bool
+    {
+        return $this->isCustom;
+    }
+
+    public function setIsCustom(bool $custom): self
+    {
+        $this->isCustom = $custom;
+
+        return $this;
+    }
+
+    public function fromArray(array $meta): ReflectorBuilderInterface
+    {
+        $this->setName($meta[MetaKey::NAME->value]);
+        $this->setShortName($meta[MetaKey::SHORT_NAME->value]);
+        $this->setNamespace($meta[MetaKey::NAMESPACE->value]);
+        $this->setParent($meta[MetaKey::PARENT->value]);
+        $this->setIsFinal($meta[MetaKey::IS_FINAL->value]);
+        $this->setIsAbstract($meta[MetaKey::IS_ABSTRACT->value]);
+        $this->setIsIterable($meta[MetaKey::IS_ITERABLE->value]);
+        $this->setIsTrait($meta[MetaKey::IS_TRAIT->value]);
+        $this->setIsInterface($meta[MetaKey::IS_INTERFACE->value]);
+        $this->setIsAnonymous($meta[MetaKey::IS_ANONYMOUS->value]);
+        $this->setIsCloneable($meta[MetaKey::IS_CLONEABLE->value]);
         $this->setMethods(array_map(
-            static fn (array $data) => (new MethodBuilder())->fromArray($data, $updateCacheCallback),
-            $meta[KeyEnum::METHODS->value]
+            static fn (array $method) => (new MethodBuilder())->fromArray($method),
+            $meta[MetaKey::METHODS->value]
         ));
         $this->setProperties(array_map(
-            static fn (array $data) => (new PropertyBuilder())->fromArray($data, $updateCacheCallback),
-            $meta[KeyEnum::PROPS->value]
+            static fn (array $property) => (new PropertyBuilder())->fromArray($property),
+            $meta[MetaKey::PROPS->value]
         ));
         $this->setAttributes(array_map(
-            static fn (array $data) => (new AttributeBuilder())->fromArray($data, $updateCacheCallback),
-            $meta[KeyEnum::ATTRS->value]
+            static fn (array $attribute) => (new AttributeBuilder())->fromArray($attribute),
+            $meta[MetaKey::ATTRS->value]
         ));
+        $this->setConstants(array_map(
+            static fn (array $constant) => (new ClassConstantBuilder())->fromArray($constant),
+            $meta[MetaKey::CLASS_CONSTANT->value]
+        ));
+        $this->setTraits(array_map(
+            static fn (array $trait) => (new self())->fromArray($trait),
+            $meta[MetaKey::TRAITS->value]
+        ));
+        $this->setInterfaces(array_map(
+            static fn (array $trait) => (new self())->fromArray($trait),
+            $meta[MetaKey::INTERFACES->value]
+        ));
+        $this->setIsCustom($meta[MetaKey::CUSTOM->value]);
 
         return $this;
     }
@@ -249,19 +339,24 @@ final class ClassBuilder implements ReflectorBuilderInterface
     public function toArray(): array
     {
         return [
-            KeyEnum::NAME->value => $this->getName(),
-            KeyEnum::SHORT_NAME->value => $this->getShortName(),
-            KeyEnum::NAMESPACE->value => $this->getNamespace(),
-            KeyEnum::PARENT->value => $this->getParent()?->toArray(),
-            KeyEnum::IS_ABSTRACT->value => $this->isAbstract(),
-            KeyEnum::IS_FINAL->value => $this->isFinal(),
-            KeyEnum::IS_ITERABLE->value => $this->isIterable(),
-            KeyEnum::IS_TRAIT->value => $this->isTrait(),
-            KeyEnum::IS_INTERFACE->value => $this->isInterface(),
-            KeyEnum::IS_ANONYMOUS->value => $this->isAnonymous(),
-            KeyEnum::METHODS->value => array_map(static fn (MethodBuilder $builder) => $builder->toArray(), $this->getMethods()),
-            KeyEnum::PROPS->value => array_map(static fn (PropertyBuilder $builder) => $builder->toArray(), $this->getProperties()),
-            KeyEnum::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes())
+            MetaKey::NAME->value => $this->getName(),
+            MetaKey::SHORT_NAME->value => $this->getShortName(),
+            MetaKey::NAMESPACE->value => $this->getNamespace(),
+            MetaKey::MODIFIER->value => $this->getModifiers(),
+            MetaKey::PARENT->value => $this->getParent()?->toArray(),
+            MetaKey::IS_ABSTRACT->value => $this->isAbstract(),
+            MetaKey::IS_FINAL->value => $this->isFinal(),
+            MetaKey::IS_ITERABLE->value => $this->isIterable(),
+            MetaKey::IS_TRAIT->value => $this->isTrait(),
+            MetaKey::IS_INTERFACE->value => $this->isInterface(),
+            MetaKey::IS_ANONYMOUS->value => $this->isAnonymous(),
+            MetaKey::IS_CLONEABLE->value => $this->isCloneable(),
+            MetaKey::METHODS->value => array_map(static fn (MethodBuilder $builder) => $builder->toArray(), $this->getMethods()),
+            MetaKey::PROPS->value => array_map(static fn (PropertyBuilder $builder) => $builder->toArray(), $this->getProperties()),
+            MetaKey::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes()),
+            MetaKey::TRAITS->value => array_map(static fn (ClassBuilder $builder) => $builder->toArray(), $this->getTraits()),
+            MetaKey::INTERFACES->value => array_map(static fn (ClassBuilder $builder) => $builder->toArray(), $this->getInterfaces()),
+            MetaKey::CUSTOM->value => $this->isCustom()
         ];
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Codememory\Reflection\ReflectorBuilder;
 
-use Codememory\Reflection\Enum\KeyEnum;
+use Codememory\Reflection\Enum\MetaKey;
 use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
 
 final class MethodBuilder implements ReflectorBuilderInterface
@@ -85,28 +85,16 @@ final class MethodBuilder implements ReflectorBuilderInterface
         return $this;
     }
 
-    public function fromArray(array $meta, callable $updateCacheCallback): ReflectorBuilderInterface
+    public function fromArray(array $meta): ReflectorBuilderInterface
     {
-        $expectKeys = [
-            KeyEnum::NAME->value,
-            KeyEnum::MODIFIER->value,
-            KeyEnum::IS_CONSTRUCT->value,
-            KeyEnum::ATTRS->value,
-            KeyEnum::PARAMS->value,
-        ];
-
-        if (array_diff($expectKeys, array_keys($meta))) {
-            $meta = $updateCacheCallback();
-        }
-
-        $this->setName($meta[KeyEnum::NAME->value]);
-        $this->setModifier($meta[KeyEnum::MODIFIER->value]);
-        $this->setIsConstruct($meta[KeyEnum::IS_CONSTRUCT->value]);
+        $this->setName($meta[MetaKey::NAME->value]);
+        $this->setModifier($meta[MetaKey::MODIFIER->value]);
+        $this->setIsConstruct($meta[MetaKey::IS_CONSTRUCT->value]);
         $this->setAttributes(array_map(
-            static fn (array $data) => (new AttributeBuilder())->fromArray($data, $updateCacheCallback),
-            $meta[KeyEnum::ATTRS->value]
+            static fn (array $data) => (new AttributeBuilder())->fromArray($data),
+            $meta[MetaKey::ATTRS->value]
         ));
-        $this->setParameters($meta[KeyEnum::PARAMS->value]);
+        $this->setParameters($meta[MetaKey::PARAMS->value]);
 
         return $this;
     }
@@ -114,11 +102,11 @@ final class MethodBuilder implements ReflectorBuilderInterface
     public function toArray(): array
     {
         return [
-            KeyEnum::NAME->value => $this->getName(),
-            KeyEnum::MODIFIER->value => $this->getModifier(),
-            KeyEnum::IS_CONSTRUCT->value => $this->isConstruct(),
-            KeyEnum::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes()),
-            KeyEnum::PARAMS->value => array_map(static fn (ParameterBuilder $builder) => $builder->toArray(), $this->getParameters()),
+            MetaKey::NAME->value => $this->getName(),
+            MetaKey::MODIFIER->value => $this->getModifier(),
+            MetaKey::IS_CONSTRUCT->value => $this->isConstruct(),
+            MetaKey::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes()),
+            MetaKey::PARAMS->value => array_map(static fn (ParameterBuilder $builder) => $builder->toArray(), $this->getParameters()),
         ];
     }
 }

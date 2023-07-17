@@ -2,7 +2,7 @@
 
 namespace Codememory\Reflection\ReflectorBuilder;
 
-use Codememory\Reflection\Enum\KeyEnum;
+use Codememory\Reflection\Enum\MetaKey;
 use Codememory\Reflection\Interfaces\ReflectorBuilderInterface;
 use Codememory\Reflection\ReflectorBuilder\Traits\TypeTrait;
 
@@ -81,29 +81,16 @@ final class PropertyBuilder implements ReflectorBuilderInterface
         return $this;
     }
 
-    public function fromArray(array $meta, callable $updateCacheCallback): ReflectorBuilderInterface
+    public function fromArray(array $meta): ReflectorBuilderInterface
     {
-        $expectKeys = [
-            KeyEnum::NAMESPACE->value,
-            KeyEnum::NAME->value,
-            KeyEnum::MODIFIER->value,
-            KeyEnum::TYPE->value,
-            KeyEnum::DEFAULT_VALUE->value,
-            KeyEnum::ATTRS->value
-        ];
-
-        if (array_diff($expectKeys, array_keys($meta))) {
-            $meta = $updateCacheCallback();
-        }
-
-        $this->setClass($meta[KeyEnum::NAMESPACE->value]);
-        $this->setName($meta[KeyEnum::NAME->value]);
-        $this->setModifier($meta[KeyEnum::MODIFIER->value]);
-        $this->setType($this->typeToBuilder($meta, $updateCacheCallback));
-        $this->setDefaultValue($meta[KeyEnum::DEFAULT_VALUE->value]);
+        $this->setClass($meta[MetaKey::NAMESPACE->value]);
+        $this->setName($meta[MetaKey::NAME->value]);
+        $this->setModifier($meta[MetaKey::MODIFIER->value]);
+        $this->setType($this->typeToBuilder($meta));
+        $this->setDefaultValue($meta[MetaKey::DEFAULT_VALUE->value]);
         $this->setAttributes(array_map(
-            static fn (array $data) => (new AttributeBuilder())->fromArray($data, $updateCacheCallback),
-            $meta[KeyEnum::ATTRS->value]
+            static fn (array $data) => (new AttributeBuilder())->fromArray($data),
+            $meta[MetaKey::ATTRS->value]
         ));
 
         return $this;
@@ -112,12 +99,12 @@ final class PropertyBuilder implements ReflectorBuilderInterface
     public function toArray(): array
     {
         return [
-            KeyEnum::NAMESPACE->value => $this->getClass(),
-            KeyEnum::NAME->value => $this->getName(),
-            KeyEnum::MODIFIER->value => $this->getModifier(),
-            KeyEnum::TYPE->value => $this->typeToArray(),
-            KeyEnum::DEFAULT_VALUE->value => $this->getDefaultValue(),
-            KeyEnum::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes())
+            MetaKey::NAMESPACE->value => $this->getClass(),
+            MetaKey::NAME->value => $this->getName(),
+            MetaKey::MODIFIER->value => $this->getModifier(),
+            MetaKey::TYPE->value => $this->typeToArray(),
+            MetaKey::DEFAULT_VALUE->value => $this->getDefaultValue(),
+            MetaKey::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes())
         ];
     }
 }
