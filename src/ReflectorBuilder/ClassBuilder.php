@@ -220,10 +220,18 @@ final class ClassBuilder implements ReflectorBuilderInterface
             $meta = $updateCacheCallback();
         }
 
+        $parent = null;
+
+        if (null !== $meta[KeyEnum::PARENT->value] && [] !== $meta[KeyEnum::PARENT->value]) {
+            $parent = new self();
+
+            $parent->fromArray($meta[KeyEnum::PARENT->value], $updateCacheCallback);
+        }
+        
         $this->setName($meta[KeyEnum::NAME->value]);
         $this->setShortName($meta[KeyEnum::SHORT_NAME->value]);
         $this->setNamespace($meta[KeyEnum::NAMESPACE->value]);
-        $this->setParent($meta[KeyEnum::PARENT->value]);
+        $this->setParent($parent);
         $this->setIsFinal($meta[KeyEnum::IS_FINAL->value]);
         $this->setIsAbstract($meta[KeyEnum::IS_ABSTRACT->value]);
         $this->setIsIterable($meta[KeyEnum::IS_ITERABLE->value]);
