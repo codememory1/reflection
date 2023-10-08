@@ -12,6 +12,8 @@ final class ClassBuilder implements ReflectorBuilderInterface
     private ?string $namespace = null;
     private ?int $modifiers = null;
     private ?ClassBuilder $parent = null;
+    private ?int $id = null;
+    private ?string $hash = null;
     private bool $isAbstract = false;
     private bool $isFinal = false;
     private bool $isIterable = false;
@@ -83,6 +85,30 @@ final class ClassBuilder implements ReflectorBuilderInterface
     public function setParent(?self $parent): self
     {
         $this->parent = $parent;
+
+        return $this;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
+    public function getHash(): string
+    {
+        return $this->hash;
+    }
+
+    public function setHash(string $hash): self
+    {
+        $this->hash = $hash;
 
         return $this;
     }
@@ -300,6 +326,8 @@ final class ClassBuilder implements ReflectorBuilderInterface
         $this->setShortName($meta[MetaKey::SHORT_NAME->value]);
         $this->setNamespace($meta[MetaKey::NAMESPACE->value]);
         $this->setParent($meta[MetaKey::PARENT->value]);
+        $this->setId($meta[MetaKey::ID->value]);
+        $this->setHash($meta[MetaKey::HASH->value]);
         $this->setIsFinal($meta[MetaKey::IS_FINAL->value]);
         $this->setIsAbstract($meta[MetaKey::IS_ABSTRACT->value]);
         $this->setIsIterable($meta[MetaKey::IS_ITERABLE->value]);
@@ -344,6 +372,8 @@ final class ClassBuilder implements ReflectorBuilderInterface
             MetaKey::NAMESPACE->value => $this->getNamespace(),
             MetaKey::MODIFIER->value => $this->getModifiers(),
             MetaKey::PARENT->value => $this->getParent()?->toArray(),
+            MetaKey::ID->value => $this->getId(),
+            MetaKey::HASH->value => $this->getHash(),
             MetaKey::IS_ABSTRACT->value => $this->isAbstract(),
             MetaKey::IS_FINAL->value => $this->isFinal(),
             MetaKey::IS_ITERABLE->value => $this->isIterable(),

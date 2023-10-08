@@ -87,6 +87,8 @@ final readonly class ReflectorManager
         $classBuilder->setNamespace($reflectionClass->getNamespaceName());
         $classBuilder->setModifiers($reflectionClass->getModifiers());
         $classBuilder->setParent(false === $parent ? null : $this->buildClass($parent));
+        $classBuilder->setId(spl_object_id($reflectionClass));
+        $classBuilder->setHash(spl_object_hash($reflectionClass));
         $classBuilder->setIsAbstract($reflectionClass->isAbstract());
         $classBuilder->setIsFinal($reflectionClass->isFinal());
         $classBuilder->setIsIterable($reflectionClass->isIterable());

@@ -35,4 +35,6 @@ enum MetaKey: string
     case PARENT = 'parent';
     case CLASS_CONSTANT = 'class_constant';
     case CUSTOM = 'custom';
+    case ID = 'id';
+    case HASH = 'hash';
 }
