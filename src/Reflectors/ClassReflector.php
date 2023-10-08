@@ -119,7 +119,13 @@ final readonly class ClassReflector implements ReflectorInterface
      */
     public function getMethods(): array
     {
-        return array_map(static fn (MethodBuilder $builder) => new MethodReflector($builder), $this->builder->getMethods());
+        $methods = [];
+
+        foreach ($this->builder->getMethods() as $builder) {
+            $methods[$builder->getName()] = new MethodReflector($builder);
+        }
+
+        return $methods;
     }
 
     /**
@@ -132,13 +138,7 @@ final readonly class ClassReflector implements ReflectorInterface
 
     public function hasMethod(string $name): bool
     {
-        foreach ($this->getMethods() as $method) {
-            if ($method->getName() === $name) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_key_exists($name, $this->getMethods());
     }
 
     /**
@@ -168,7 +168,11 @@ final readonly class ClassReflector implements ReflectorInterface
     public function getProperties(?int $modifier = null): array
     {
         $thisName = $this->getName();
-        $properties = array_map(static fn (PropertyBuilder $builder) => new PropertyReflector($builder), $this->builder->getProperties());
+        $properties = [];
+
+        foreach ($this->builder->getProperties() as $builder) {
+            $properties[$builder->getName()] = new PropertyReflector($builder);
+        }
 
         return array_filter($properties, static function(PropertyReflector $property) use ($thisName, $modifier) {
             $belongsToClass = $property->getClass() === $thisName;
@@ -183,13 +187,7 @@ final readonly class ClassReflector implements ReflectorInterface
 
     public function getPropertyByName(string $name): ?PropertyReflector
     {
-        foreach ($this->getProperties() as $propertyReflector) {
-            if ($propertyReflector->getName() === $name) {
-                return $propertyReflector;
-            }
-        }
-
-        return null;
+        return $this->getProperties()[$name] ?? null;
     }
 
     /**
@@ -226,13 +224,7 @@ final readonly class ClassReflector implements ReflectorInterface
 
     public function hasProperty(string $name): bool
     {
-        foreach ($this->getProperties() as $property) {
-            if ($property->getName() === $name) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_key_exists($name, $this->getProperties());
     }
 
     /**
