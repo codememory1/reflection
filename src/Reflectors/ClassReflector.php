@@ -49,6 +49,16 @@ final readonly class ClassReflector implements ReflectorInterface
         return null === $parent ? null : new self($parent);
     }
 
+    public function getId(): int
+    {
+        return $this->builder->getId();
+    }
+
+    public function getHash(): string
+    {
+        return $this->builder->getHash();
+    }
+
     /**
      * @throws Exception
      */
