@@ -70,12 +70,15 @@ final class MethodReflector implements ReflectorInterface
 
     public function invoke(object $object, mixed ...$args): mixed
     {
+        $methodName = $this->getName();
+
         if ($this->isPublic()) {
             return $this->isStatic() ? $object::{$this->getName()}(...$args) : $object->{$this->getName()}(...$args);
         }
 
-        return (fn (object $object, mixed ...$args) => call_user_func_array([$object, $this->getName()], $args))
-            ->bindTo($object, $object)->__invoke($object, ...$args);
+        return (function (object $object, mixed ...$args) use ($methodName): mixed {
+            return call_user_func_array([$object, $methodName], $args);
+        })->bindTo($object, $object)->__invoke($object, ...$args);
     }
 
     public function __toString(): string
