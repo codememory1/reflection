@@ -5,20 +5,42 @@ namespace Codememory\Reflection\Reflectors;
 use Codememory\Reflection\Exceptions\NotAvailableInCurrencyPhpVersionException;
 use Codememory\Reflection\Interfaces\ReflectorInterface;
 use Codememory\Reflection\ReflectorBuilder\ClassBuilder;
-use Codememory\Reflection\ReflectorBuilder\ClassConstantBuilder;
-use Codememory\Reflection\ReflectorBuilder\MethodBuilder;
-use Codememory\Reflection\ReflectorBuilder\PropertyBuilder;
 use Codememory\Reflection\Reflectors\Traits\AttributeTrait;
 use Exception;
 use ReflectionClass;
 use ReflectionProperty;
 
-final readonly class ClassReflector implements ReflectorInterface
+final class ClassReflector implements ReflectorInterface
 {
     use AttributeTrait;
 
+    /**
+     * @var array<string, MethodReflector>|bool
+     */
+    private bool|array $methods = false;
+
+    /**
+     * @var array<string, PropertyReflector>|bool
+     */
+    private bool|array $properties = false;
+
+    /**
+     * @var array<string, ClassConstantReflector>|bool
+     */
+    private bool|array $constants = false;
+
+    /**
+     * @var array<string, ClassReflector>|bool
+     */
+    private bool|array $traits = false;
+
+    /**
+     * @var array<string, ClassReflector>|bool
+     */
+    private bool|array $interfaces = false;
+
     public function __construct(
-        private ClassBuilder $builder
+        private readonly ClassBuilder $builder
     ) {
     }
 
@@ -115,21 +137,28 @@ final readonly class ClassReflector implements ReflectorInterface
     }
 
     /**
-     * @return array<int, MethodReflector>
+     * @return array<string, MethodReflector>
      */
     public function getMethods(): array
     {
-        $methods = [];
+        if (!$this->methods) {
+            $this->methods = [];
 
-        foreach ($this->builder->getMethods() as $builder) {
-            $methods[$builder->getName()] = new MethodReflector($builder);
+            foreach ($this->builder->getMethods() as $builder) {
+                $this->methods[$builder->getName()] = new MethodReflector($builder);
+            }
         }
 
-        return $methods;
+        return $this->methods;
+    }
+
+    public function getMethodByName(string $name): ?MethodReflector
+    {
+        return $this->getMethods()[$name] ?? null;
     }
 
     /**
-     * @return array<int, MethodReflector>
+     * @return array<string, MethodReflector>
      */
     public function getStaticMethods(): array
     {
@@ -144,7 +173,7 @@ final readonly class ClassReflector implements ReflectorInterface
     /**
      * @param array<int, string> $excludeParentClasses
      *
-     * @return array<int, PropertyReflector>
+     * @return array<string, PropertyReflector>
      */
     public function getPropertiesIncludingParent(array $excludeParentClasses = [], ?int $modifier = null): array
     {
@@ -163,19 +192,22 @@ final readonly class ClassReflector implements ReflectorInterface
     }
 
     /**
-     * @return array<int, PropertyReflector>
+     * @return array<string, PropertyReflector>
      */
     public function getProperties(?int $modifier = null): array
     {
-        $thisName = $this->getName();
-        $properties = [];
+        $className = $this->getName();
 
-        foreach ($this->builder->getProperties() as $builder) {
-            $properties[$builder->getName()] = new PropertyReflector($builder);
+        if (!$this->properties) {
+            $this->properties = [];
+
+            foreach ($this->builder->getProperties() as $builder) {
+                $this->properties[$builder->getName()] = new PropertyReflector($builder);
+            }
         }
 
-        return array_filter($properties, static function(PropertyReflector $property) use ($thisName, $modifier) {
-            $belongsToClass = $property->getClass() === $thisName;
+        return array_filter($this->properties, static function(PropertyReflector $property) use ($className, $modifier) {
+            $belongsToClass = $property->getClass() === $className;
 
             if (null === $modifier) {
                 return $belongsToClass;
@@ -191,13 +223,16 @@ final readonly class ClassReflector implements ReflectorInterface
     }
 
     /**
-     * @return array<int, PropertyReflector>
+     * @return array<string, PropertyReflector>
      */
     public function getStaticProperties(): array
     {
         return array_filter($this->getProperties(), static fn (PropertyReflector $propertyReflector) => $propertyReflector->isStatic());
     }
 
+    /**
+     * @return array<string, PropertyReflector>
+     */
     public function getPrivateProperties(): array
     {
         return array_filter(
@@ -206,6 +241,9 @@ final readonly class ClassReflector implements ReflectorInterface
         );
     }
 
+    /**
+     * @return array<string, PropertyReflector>
+     */
     public function getPublicProperties(): array
     {
         return array_filter(
@@ -214,6 +252,9 @@ final readonly class ClassReflector implements ReflectorInterface
         );
     }
 
+    /**
+     * @return array<string, PropertyReflector>
+     */
     public function getProtectedProperties(): array
     {
         return array_filter(
@@ -228,25 +269,35 @@ final readonly class ClassReflector implements ReflectorInterface
     }
 
     /**
-     * @return array<int, ClassReflector>
+     * @return array<string, ClassReflector>
      */
     public function getTraits(): array
     {
-        return array_map(
-            static fn (ClassBuilder $classBuilder) => new self($classBuilder),
-            $this->builder->getTraits()
-        );
+        if (!$this->traits) {
+            $this->traits = [];
+
+            foreach ($this->builder->getTraits() as $builder) {
+                $this->traits[$builder->getName()] = new self($builder);
+            }
+        }
+
+        return $this->traits;
     }
 
     /**
-     * @return array<int, ClassReflector>
+     * @return array<string, ClassReflector>
      */
     public function getInterfaces(): array
     {
-        return array_map(
-            static fn (ClassBuilder $classBuilder) => new self($classBuilder),
-            $this->builder->getInterfaces()
-        );
+        if (!$this->interfaces) {
+            $this->interfaces = [];
+
+            foreach ($this->builder->getInterfaces() as $builder) {
+                $this->interfaces[$builder->getName()] = new self($builder);
+            }
+        }
+
+        return $this->interfaces;
     }
 
     public function getInterface(string $interface): ?self
@@ -270,36 +321,27 @@ final readonly class ClassReflector implements ReflectorInterface
     }
 
     /**
-     * @return array<int, ClassConstantReflector>
+     * @return array<string, ClassConstantReflector>
      */
     public function getConstants(): array
     {
-        return array_map(
-            static fn (ClassConstantBuilder $classConstantBuilder) => new ClassConstantReflector($classConstantBuilder),
-            $this->builder->getConstants()
-        );
+        if (!$this->constants) {
+            foreach ($this->builder->getConstants() as $builder) {
+                $this->constants[$builder->getName()] = new ClassConstantReflector($builder);
+            }
+        }
+
+        return $this->constants;
     }
 
     public function getConstant(string $name): ?ClassConstantReflector
     {
-        foreach ($this->getConstants() as $constant) {
-            if ($constant->getName() === $name) {
-                return $constant;
-            }
-        }
-
-        return null;
+        return $this->getConstants()[$name] ?? null;
     }
 
     public function hasConstant(string $name): bool
     {
-        foreach ($this->getConstants() as $constant) {
-            if ($constant->getName() === $name) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_key_exists($name, $this->getConstants());
     }
 
     public function newInstance(mixed ...$args): object

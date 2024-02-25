@@ -2,17 +2,29 @@
 
 namespace Codememory\Reflection\Reflectors\Traits;
 
-use Codememory\Reflection\ReflectorBuilder\AttributeBuilder;
 use Codememory\Reflection\Reflectors\AttributeReflector;
 
 trait AttributeTrait
 {
     /**
-     * @return array<int, AttributeReflector>
+     * @var array<string, AttributeReflector>|bool
+     */
+    private bool|array $attributes = [];
+
+    /**
+     * @return array<string, AttributeReflector>
      */
     public function getAttributes(): array
     {
-        return array_map(static fn (AttributeBuilder $builder) => new AttributeReflector($builder), $this->builder->getAttributes());
+        if (!$this->attributes) {
+            $this->attributes = [];
+
+            foreach ($this->builder->getAttributes() as $builder) {
+                $this->attributes[$builder->getName()] = new AttributeReflector($builder);
+            }
+        }
+
+        return $this->attributes;
     }
 
     public function getAttributesByInstance(string $instance): array
@@ -22,23 +34,11 @@ trait AttributeTrait
 
     public function getAttributeByName(string $name): ?AttributeReflector
     {
-        foreach ($this->getAttributes() as $attribute) {
-            if ($attribute->getName() === $name) {
-                return $attribute;
-            }
-        }
-
-        return null;
+        return $this->getAttributes()[$name] ?? null;
     }
 
     public function hasAttribute(string $name): bool
     {
-        foreach ($this->getAttributes() as $attribute) {
-            if ($attribute->getName() === $name) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_key_exists($name, $this->getAttributes());
     }
 }

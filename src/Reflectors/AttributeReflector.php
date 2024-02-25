@@ -5,10 +5,10 @@ namespace Codememory\Reflection\Reflectors;
 use Codememory\Reflection\Interfaces\ReflectorInterface;
 use Codememory\Reflection\ReflectorBuilder\AttributeBuilder;
 
-final readonly class AttributeReflector implements ReflectorInterface
+final class AttributeReflector implements ReflectorInterface
 {
     public function __construct(
-        private AttributeBuilder $builder
+        private readonly AttributeBuilder $builder
     ) {
     }
 
