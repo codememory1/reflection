@@ -9,13 +9,13 @@ use Codememory\Reflection\Reflectors\Traits\AttributeTrait;
 use Codememory\Reflection\Reflectors\Traits\TypeTrait;
 use ReflectionProperty;
 
-final readonly class PropertyReflector implements ReflectorInterface
+final class PropertyReflector implements ReflectorInterface
 {
     use AttributeTrait;
     use TypeTrait;
 
     public function __construct(
-        private PropertyBuilder $builder
+        private readonly PropertyBuilder $builder
     ) {
     }
 
@@ -69,12 +69,12 @@ final readonly class PropertyReflector implements ReflectorInterface
         $that = $this;
         $value = null;
 
+        if ($this->isPublic()) {
+            return $this->isStatic() ? $object::${$that->getName()} : $object->{$that->getName()};
+        }
+
         (Closure::bind(function(object $object) use (&$value, $that): void {
-            if ($that->isStatic()) {
-                $value = $object::${$that->getName()};
-            } else {
-                $value = $object->{$that->getName()};
-            }
+            $value = $that->isStatic() ? $object::${$that->getName()} : $object->{$that->getName()};
         }, null, $object))($object);
 
         return $value;
@@ -85,13 +85,13 @@ final readonly class PropertyReflector implements ReflectorInterface
         $that = $this;
         $propertyName = $this->getName();
 
-        (Closure::bind(function(object $object) use ($propertyName, $value, $that): void {
-            if ($that->isStatic()) {
-                $object::$$propertyName = $value;
-            } else {
-                $object->$propertyName = $value;
-            }
-        }, null, $object))($object);
+        if ($this->isPublic()) {
+            $this->isStatic() ? $object::$$propertyName = $value : $object->$propertyName = $value;
+        } else {
+            (Closure::bind(function(object $object) use ($propertyName, $value, $that): void {
+                $that->isStatic() ? $object::$$propertyName = $value : $object->$propertyName = $value;
+            }, null, $object))($object);
+        }
 
         return $this;
     }

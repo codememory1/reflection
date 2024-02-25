@@ -68,15 +68,14 @@ final readonly class MethodReflector implements ReflectorInterface
         return array_map(static fn (ParameterBuilder $builder) => new ParameterReflector($builder), $this->builder->getParameters());
     }
 
-    public function invoke(object $object, mixed ...$args): self
+    public function invoke(object $object, mixed ...$args): mixed
     {
-        $methodName = $this->getName();
+        if ($this->isPublic()) {
+            return $this->isStatic() ? $object::{$this->getName()}(...$args) : $object->{$this->getName()}(...$args);
+        }
 
-        (function(object $object, mixed ...$args) use ($methodName): void {
-            call_user_func_array([$object, $methodName], $args);
-        })->bindTo($object, $object)->__invoke($object, ...$args);
-
-        return $this;
+        return (fn (object $object, mixed ...$args) => call_user_func_array([$object, $this->getName()], $args))
+            ->bindTo($object, $object)->__invoke($object, ...$args);
     }
 
     public function __toString(): string

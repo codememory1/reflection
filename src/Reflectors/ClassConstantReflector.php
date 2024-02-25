@@ -6,10 +6,10 @@ use Codememory\Reflection\Interfaces\ReflectorInterface;
 use Codememory\Reflection\ReflectorBuilder\AttributeBuilder;
 use Codememory\Reflection\ReflectorBuilder\ClassConstantBuilder;
 
-final readonly class ClassConstantReflector implements ReflectorInterface
+final class ClassConstantReflector implements ReflectorInterface
 {
     public function __construct(
-        private ClassConstantBuilder $builder
+        private readonly ClassConstantBuilder $builder
     ) {
     }
 

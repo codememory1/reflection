@@ -24,11 +24,11 @@ use RuntimeException;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
 use Symfony\Contracts\Cache\ItemInterface;
 
-final readonly class ReflectorManager
+final class ReflectorManager
 {
     public function __construct(
-        private AbstractAdapter $cache,
-        private bool $isDev = true
+        private readonly AbstractAdapter $cache,
+        private readonly bool $isDev = true
     ) {
     }
 
