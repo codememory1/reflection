@@ -386,7 +386,8 @@ final class ClassBuilder implements ReflectorBuilderInterface
             MetaKey::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes()),
             MetaKey::TRAITS->value => array_map(static fn (ClassBuilder $builder) => $builder->toArray(), $this->getTraits()),
             MetaKey::INTERFACES->value => array_map(static fn (ClassBuilder $builder) => $builder->toArray(), $this->getInterfaces()),
-            MetaKey::CUSTOM->value => $this->isCustom()
+            MetaKey::CUSTOM->value => $this->isCustom(),
+            MetaKey::CLASS_CONSTANT->value => array_map(static fn (ClassConstantBuilder $builder) => $builder->toArray(), $this->getConstants()),
         ];
     }
 }

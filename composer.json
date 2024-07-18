@@ -15,8 +15,8 @@
         }
     ],
     "require": {
-        "php": ">=8.1",
-        "symfony/cache": "^6.1"
+        "php": ">=8.3",
+        "symfony/cache": "^7.1"
     },
     "config": {
         "optimize-autoloader": true,
