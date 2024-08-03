@@ -350,7 +350,7 @@ final class ClassReflector implements ReflectorInterface
             return new ($this->getName())(...$args);
         }
 
-        return new ($this->getNamespace())(...$args);
+        return new ($this->getName())(...$args);
     }
 
     public function __toString(): string
