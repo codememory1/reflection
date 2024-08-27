@@ -325,7 +325,7 @@ final class ClassBuilder implements ReflectorBuilderInterface
         $this->setName($meta[MetaKey::NAME->value]);
         $this->setShortName($meta[MetaKey::SHORT_NAME->value]);
         $this->setNamespace($meta[MetaKey::NAMESPACE->value]);
-        $this->setParent(null === $meta[MetaKey::PARENT->value] ? null : $this->fromArray($meta[MetaKey::PARENT->value]));
+        $this->setParent(null === $meta[MetaKey::PARENT->value] ? null : (new self())->fromArray($meta[MetaKey::PARENT->value]));
         $this->setId($meta[MetaKey::ID->value]);
         $this->setHash($meta[MetaKey::HASH->value]);
         $this->setIsFinal($meta[MetaKey::IS_FINAL->value]);
