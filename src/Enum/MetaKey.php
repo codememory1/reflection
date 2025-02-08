@@ -37,4 +37,5 @@ enum MetaKey: string
     case CUSTOM = 'custom';
     case ID = 'id';
     case HASH = 'hash';
+    case HAS_DEFAULT_VALUE = 'has_default_value';
 }

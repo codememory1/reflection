@@ -151,6 +151,7 @@ final class ReflectorManager
             $builder->setModifier($reflectionProperty->getModifiers());
             $builder->setAttributes($this->buildAttributes($reflectionProperty->getAttributes()));
             $builder->setDefaultValue($reflectionProperty->getDefaultValue());
+            $builder->setHasDefaultValue($reflectionProperty->hasDefaultValue());
 
             $properties[] = $builder;
         }
