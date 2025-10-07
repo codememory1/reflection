@@ -79,6 +79,18 @@ final class ReflectorManager
     private function buildClass(ReflectionClass $reflectionClass): ClassBuilder
     {
         $parent = $reflectionClass->getParentClass();
+        $constructor = $reflectionClass->getConstructor();
+
+        /** @var ReflectionParameter[] $constructorParameters */
+        $constructorParameters = array_reduce(
+            $constructor?->getParameters(),
+            static function (array $carry, ReflectionParameter $parameter) {
+                $carry[$parameter->getName()] = $parameter;
+
+                return $carry;
+            },
+            []
+        );
 
         $classBuilder = new ClassBuilder();
 
@@ -98,7 +110,7 @@ final class ReflectorManager
         $classBuilder->setIsCloneable($reflectionClass->isCloneable());
         $classBuilder->setIsCustom(!$reflectionClass->isInternal() && $reflectionClass->isUserDefined());
         $classBuilder->setMethods($this->buildMethods($reflectionClass->getMethods()));
-        $classBuilder->setProperties($this->buildProperties($reflectionClass->getProperties()));
+        $classBuilder->setProperties($this->buildProperties($constructorParameters, $reflectionClass->getProperties()));
         $classBuilder->setAttributes($this->buildAttributes($reflectionClass->getAttributes()));
         $classBuilder->setConstants($this->buildClassConstants($reflectionClass->getReflectionConstants()));
         $classBuilder->setTraits(array_map(
@@ -136,13 +148,28 @@ final class ReflectorManager
     }
 
     /**
-     * @param array<int, ReflectionProperty> $reflectionProperties
+     * @param array<int, ReflectionParameter> $constructorParameters
+     * @param array<int, ReflectionProperty>  $reflectionProperties
+     *
+     * @throws ReflectionException
      */
-    private function buildProperties(array $reflectionProperties): array
+    private function buildProperties(array $constructorParameters, array $reflectionProperties): array
     {
         $properties = [];
 
         foreach ($reflectionProperties as $reflectionProperty) {
+            $hasDefaultValue = $reflectionProperty->hasDefaultValue();
+            $defaultValue = $reflectionProperty->getDefaultValue();
+
+            if ($reflectionProperty->isPromoted()) {
+                $constructParameter = $constructorParameters[$reflectionProperty->getName()];
+                $hasDefaultValue = $constructParameter->isDefaultValueAvailable();
+
+                if ($hasDefaultValue) {
+                    $defaultValue = $constructParameter->getDefaultValue();
+                }
+            }
+
             $builder = new PropertyBuilder();
 
             $builder->setClass($reflectionProperty->class);
@@ -150,8 +177,8 @@ final class ReflectorManager
             $builder->setType($this->buildNamedType($reflectionProperty->getType()));
             $builder->setModifier($reflectionProperty->getModifiers());
             $builder->setAttributes($this->buildAttributes($reflectionProperty->getAttributes()));
-            $builder->setDefaultValue($reflectionProperty->getDefaultValue());
-            $builder->setHasDefaultValue($reflectionProperty->hasDefaultValue());
+            $builder->setDefaultValue($defaultValue);
+            $builder->setHasDefaultValue($hasDefaultValue);
 
             $properties[] = $builder;
         }
