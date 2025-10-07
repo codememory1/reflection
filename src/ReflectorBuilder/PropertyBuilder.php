@@ -14,6 +14,7 @@ final class PropertyBuilder implements ReflectorBuilderInterface
     private ?int $modifier = null;
     private mixed $defaultValue = null;
     private array $attributes = [];
+    private bool $hasDefaultValue = false;
 
     public function getClass(): ?string
     {
@@ -81,6 +82,18 @@ final class PropertyBuilder implements ReflectorBuilderInterface
         return $this;
     }
 
+    public function hasDefaultValue(): bool
+    {
+        return $this->hasDefaultValue;
+    }
+
+    public function setHasDefaultValue(bool $hasDefaultValue): self
+    {
+        $this->hasDefaultValue = $hasDefaultValue;
+
+        return $this;
+    }
+
     public function fromArray(array $meta): ReflectorBuilderInterface
     {
         $this->setClass($meta[MetaKey::NAMESPACE->value]);
@@ -92,6 +105,7 @@ final class PropertyBuilder implements ReflectorBuilderInterface
             static fn (array $data) => (new AttributeBuilder())->fromArray($data),
             $meta[MetaKey::ATTRS->value]
         ));
+        $this->setHasDefaultValue($meta[MetaKey::HAS_DEFAULT_VALUE->value]);
 
         return $this;
     }
@@ -104,7 +118,8 @@ final class PropertyBuilder implements ReflectorBuilderInterface
             MetaKey::MODIFIER->value => $this->getModifier(),
             MetaKey::TYPE->value => $this->typeToArray(),
             MetaKey::DEFAULT_VALUE->value => $this->getDefaultValue(),
-            MetaKey::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes())
+            MetaKey::ATTRS->value => array_map(static fn (AttributeBuilder $builder) => $builder->toArray(), $this->getAttributes()),
+            MetaKey::HAS_DEFAULT_VALUE->value => $this->hasDefaultValue()
         ];
     }
 }

@@ -96,6 +96,11 @@ final class PropertyReflector implements ReflectorInterface
         return $this;
     }
 
+    public function hasDefaultValue(): bool
+    {
+        return $this->builder->hasDefaultValue();
+    }
+
     public function __toString(): string
     {
         return $this->getName();
